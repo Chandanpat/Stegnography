@@ -111,6 +111,7 @@ if __name__ == '__main__':
 
         elif ch == 3:
             print("\n\nExiting.....")
+            break
 
         else:
             print("\n\nInvalid Choice!!")
