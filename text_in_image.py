@@ -9,7 +9,7 @@ def encrypt(key, password, msg):
     cipher = AES.new(key, AES.MODE_CBC)
     ciphered_data = cipher.encrypt(pad(msg, AES.block_size))
     # print(ciphered_data)
-    with open('encrypted.bin', 'wb') as f:
+    with open('./output/encrypted.bin', 'wb') as f:
         f.write(cipher.iv)
         f.write(ciphered_data)
     return ciphered_data
@@ -20,7 +20,7 @@ def key_generator(password):
     # print(simple_key)
     salt = simple_key
     key = PBKDF2(password, salt, dkLen=32)
-    with open('key.bin', 'wb') as f:
+    with open('./output/key.bin', 'wb') as f:
         password1 = bytes(password + "\n", "utf-8")
         # print(password1)
         f.write(password1)
@@ -29,7 +29,7 @@ def key_generator(password):
 
 
 def decrypt(key, cypherText):
-    with open('encrypted.bin', 'rb') as f:
+    with open('./output/encrypted.bin', 'rb') as f:
         iv = f.read(16)
         cypherText = f.read()
         cipher = AES.new(key, AES.MODE_CBC, iv=iv)
@@ -60,7 +60,7 @@ def hide_msg_in_image(password, msg, path):
     # print(encoded_pixel)
     encoded_image = Image.new(image.mode, image.size)
     encoded_image.putdata(encoded_pixels)
-    encoded_image.save('image_hidden.png')
+    encoded_image.save('./output/image_hidden.png')
     print("\n\nText embedded successfully!! Use image_hidden.png to retrieve the message.")
 
 
@@ -75,7 +75,7 @@ def retrieve_msg_from_image(password):
     # print((encrypted_message))
     # password = "1234"
     # key = key_generator(password)
-    with open('key.bin', 'rb') as f:
+    with open('./output/key.bin', 'rb') as f:
         data = f.read()
     contents = data.splitlines()
     # print(contents)
@@ -91,13 +91,13 @@ def retrieve_msg_from_image(password):
         print("Invalid Password!!")
 
 
-if __name__ == '__main__':
+def caller():
     # password = input("Enter password for encryption: ")
     # msg = bytes(input("Enter message to be encrypted: "), "utf-8")
-    print("\t\t\t\t\t#####  Welcome to text in image steganography tool  #####\n\n")
+    # print("\t\t\t\t\t#####  Welcome to text in image steganography tool  #####\n\n")
     while True:
         print("\n\n\t1. Hide message in image\n\t2. Retrieve message from image\n\t3. Exit")
-        ch = int(input("\n\t\tChoose from below options: \n"))
+        ch = int(input("\n\t\tEnter your choice: \n"))
 
         if ch == 1:
             password = input("Enter password for encryption: ")
