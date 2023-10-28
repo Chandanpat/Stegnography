@@ -1,6 +1,44 @@
 # watch the video for this project here: https://youtu.be/bZ88gnHzwz8
 
 from PIL import Image
+from Crypto.Random import get_random_bytes
+from Crypto.Protocol.KDF import PBKDF2
+from PIL import Image
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
+
+
+def encrypt(key, data):
+    print(type(data))
+    cipher = AES.new(key, AES.MODE_CBC)
+    ciphertext = cipher.encrypt(pad(data, AES.block_size))
+    # print(ciphered_data)
+    with open('./output/encrypted.bin', 'wb') as f:
+        f.write(cipher.iv)
+        f.write(ciphertext)
+    return ciphertext
+
+
+def key_generator(password):
+    simple_key = get_random_bytes(32)
+    # print(simple_key)
+    salt = simple_key
+    key = PBKDF2(password, salt, dkLen=32)
+    with open('./output/key.bin', 'wb') as f:
+        password1 = bytes(password + "\n", "utf-8")
+        # print(password1)
+        f.write(password1)
+        f.write(key)
+    return key
+
+
+def decrypt(key, cypherText):
+    with open('./output/encrypted.bin', 'rb') as f:
+        iv = f.read(16)
+        cypherText = f.read()
+        cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+        og = unpad(cipher.decrypt(cypherText), AES.block_size)
+    return og
 
 MAX_COLOR_VALUE = 256
 MAX_BIT_VALUE = 8
@@ -26,40 +64,84 @@ def get_n_most_significant_bits(value, n):
 def shit_n_bits_to_8(value, n):
     return value << MAX_BIT_VALUE - n
 
-def encode(image_to_hide, image_to_hide_in, n_bits):
+# def encode(image_to_hide, image_to_hide_in, n_bits):
 
+#     width, height = image_to_hide.size
+
+#     hide_image = image_to_hide.load()
+#     hide_in_image = image_to_hide_in.load()
+
+#     data = []
+
+#     for y in range(height):
+#         for x in range(width):
+
+#             # (107, 3, 10)
+#             # most sig bits
+#             r_hide, g_hide, b_hide = hide_image[x,y]
+
+#             r_hide = get_n_most_significant_bits(r_hide, n_bits)
+#             g_hide = get_n_most_significant_bits(g_hide, n_bits)
+#             b_hide = get_n_most_significant_bits(b_hide, n_bits)
+
+#             # remove lest n sig bits
+#             r_hide_in, g_hide_in, b_hide_in = hide_in_image[x,y]
+
+#             r_hide_in = remove_n_least_significant_bits(r_hide_in, n_bits)
+#             g_hide_in = remove_n_least_significant_bits(g_hide_in, n_bits)
+#             b_hide_in = remove_n_least_significant_bits(b_hide_in, n_bits)
+
+#             data.append((r_hide + r_hide_in, 
+#                          g_hide + g_hide_in,
+#                          b_hide + b_hide_in))
+            
+#     print(data)
+#     return make_image(data, image_to_hide.size)
+
+
+def encode(image_to_hide, image_to_hide_in, n_bits, password):
     width, height = image_to_hide.size
-
     hide_image = image_to_hide.load()
     hide_in_image = image_to_hide_in.load()
 
     data = []
 
+    key = key_generator(password)
+    print(key)
+    image_bytes = image_to_hide.tobytes()
+    encrypted_image = encrypt(key, image_bytes)
+
+    # Use an iterator for the encrypted image bytes
+    encrypted_iterator = iter(encrypted_image)
+
     for y in range(height):
         for x in range(width):
+            try:
+                # Extract bytes from the encrypted image for each channel
+                r_byte = next(encrypted_iterator)
+                g_byte = next(encrypted_iterator)
+                b_byte = next(encrypted_iterator)
 
-            # (107, 3, 10)
-            # most sig bits
-            r_hide, g_hide, b_hide = hide_image[x,y]
+                # Extract the n most significant bits
+                r_hide_pixel = get_n_most_significant_bits(r_byte, n_bits)
+                g_hide_pixel = get_n_most_significant_bits(g_byte, n_bits)
+                b_hide_pixel = get_n_most_significant_bits(b_byte, n_bits)
 
-            r_hide = get_n_most_significant_bits(r_hide, n_bits)
-            g_hide = get_n_most_significant_bits(g_hide, n_bits)
-            b_hide = get_n_most_significant_bits(b_hide, n_bits)
+                # Remove the least n significant bits from the cover image
+                r_hide_in, g_hide_in, b_hide_in = hide_in_image[x, y]
+                r_hide_in = remove_n_least_significant_bits(r_hide_in, n_bits)
+                g_hide_in = remove_n_least_significant_bits(g_hide_in, n_bits)
+                b_hide_in = remove_n_least_significant_bits(b_hide_in, n_bits)
 
-            # remove lest n sig bits
-            r_hide_in, g_hide_in, b_hide_in = hide_in_image[x,y]
-
-            r_hide_in = remove_n_least_significant_bits(r_hide_in, n_bits)
-            g_hide_in = remove_n_least_significant_bits(g_hide_in, n_bits)
-            b_hide_in = remove_n_least_significant_bits(b_hide_in, n_bits)
-
-            data.append((r_hide + r_hide_in, 
-                         g_hide + g_hide_in,
-                         b_hide + b_hide_in))
-
+                data.append((r_hide_pixel + r_hide_in, g_hide_pixel + g_hide_in, b_hide_pixel + b_hide_in))
+            except StopIteration:
+                # If there's no more data in the encrypted image, break the loop
+                break
+    
     return make_image(data, image_to_hide.size)
 
-def decode(image_to_decode, n_bits):
+
+def decode(image_to_decode, n_bits, password):
     width, height = image_to_decode.size
     encoded_image = image_to_decode.load()
 
@@ -106,15 +188,17 @@ def caller():
         ch = int(input("\n\t\t Enter your choice: \n"))
 
         if ch == 1:
-            image_to_hide_path = input("Enter path of image to be hidden: ")
-            # image_to_hide_in_path = r"D:\VIT\Major_Project\Stegnography\input.tiff"
-            image_to_hide_in_path = input("Enter path to cover image: ")
+            password = input("Enter password for encryption: ")
+            # image_to_hide_path = input("Enter path of image to be hidden: ")
+            image_to_hide_path = "./resources/secret.tiff"
+            # image_to_hide_in_path = input("Enter path to cover image: ")
+            image_to_hide_in_path = "./resources/input.tiff"
             encoded_image_path = "./output/encoded.tiff"
             n_bits = 1
 
             image_to_hide = Image.open(image_to_hide_path)
             image_to_hide_in = Image.open(image_to_hide_in_path)
-            encode(image_to_hide, image_to_hide_in, n_bits).save(encoded_image_path)
+            encode(image_to_hide, image_to_hide_in, n_bits, password).save(encoded_image_path)
             print("\n\nImage embedded successfully!! Check encoded.tiff and use it for retrieving original image.")
 
         elif ch == 2:
