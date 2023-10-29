@@ -2,7 +2,8 @@ import TextInText as TinT
 import text_in_image as TinI
 import LSB_Img_in_Img as IinI
 import txtinaudio as TinA
-import audimg as AinI
+# import audimg as AinI
+import audio_in_image as AinI
 import text_in_video as TinV
 
 
