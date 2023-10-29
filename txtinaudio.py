@@ -13,7 +13,7 @@ def encrypt(key, msg):
     cipher = AES.new(key, AES.MODE_CBC)
     ciphered_data = cipher.encrypt(pad(msg, AES.block_size))
     # print(ciphered_data)
-    with open('./output/encrypted.bin', 'wb') as f:
+    with open('./output/encrypted_ta.bin', 'wb') as f:
         f.write(cipher.iv)
         f.write(ciphered_data)
     return ciphered_data
@@ -24,7 +24,7 @@ def key_generator(password):
     # print(simple_key)
     salt = simple_key
     key = PBKDF2(password, salt, dkLen=32)
-    with open('./output/key.bin', 'wb') as f:
+    with open('./output/key_ta.bin', 'wb') as f:
         password1 = bytes(password + "\n", "utf-8")
         # print(password1)
         f.write(password1)
@@ -33,7 +33,7 @@ def key_generator(password):
 
 
 def decrypt(key, cypherText):
-    with open('./output/encrypted.bin', 'rb') as f:
+    with open('./output/encrypted_ta.bin', 'rb') as f:
         iv = f.read(16)
         cypherText = f.read()
         cipher = AES.new(key, AES.MODE_CBC, iv=iv)
@@ -115,7 +115,7 @@ def extract_text_from_audio(encoded_audio_file, password):
     #     byte = binary_message[i:i + 8]
     #     message += chr(int(byte, 2))
 
-    with open('./output/key.bin', 'rb') as f:
+    with open('./output/key_ta.bin', 'rb') as f:
         data = f.read()
     contents = data.splitlines()
     # print(contents)

@@ -109,6 +109,7 @@ def encode(image_to_hide, image_to_hide_in, n_bits, password):
     key = key_generator(password)
     print(key)
     image_bytes = image_to_hide.tobytes()
+    print(image_bytes)
     encrypted_image = encrypt(key, image_bytes)
 
     # Use an iterator for the encrypted image bytes
@@ -149,9 +150,8 @@ def decode(image_to_decode, n_bits, password):
 
     for y in range(height):
         for x in range(width):
+            r_encoded, g_encoded, b_encoded = encoded_image[x, y]
 
-            r_encoded, g_encoded, b_encoded = encoded_image[x,y]
-            
             r_encoded = get_n_least_significant_bits(r_encoded, n_bits)
             g_encoded = get_n_least_significant_bits(g_encoded, n_bits)
             b_encoded = get_n_least_significant_bits(b_encoded, n_bits)
@@ -162,7 +162,38 @@ def decode(image_to_decode, n_bits, password):
 
             data.append((r_encoded, g_encoded, b_encoded))
 
-    return make_image(data, image_to_decode.size)
+    decrypted_image = make_image(data, image_to_decode.size)
+
+
+    with open('./output/key.bin', 'rb') as f:
+        data = f.read()
+    contents = data.splitlines()
+    # print(contents)
+    password1 = contents[0]
+    key = contents[1]
+    # print(key)
+    # print(str(password1, "utf-8"), "\n", password.strip())
+    if str(password1, "utf-8") == password.strip():
+        # Decrypt the image using the provided password
+        decrypted_image_bytes = decrypted_image.tobytes()
+        original_image_bytes = decrypt(key, decrypted_image_bytes)
+        print(original_image_bytes)
+
+        # Create a new image from the decrypted image bytes
+        original_image = Image.frombytes("RGB", decrypted_image.size, original_image_bytes)
+        return original_image
+
+    else:
+        print("Invalid Password!!")
+        return 0
+
+    
+
+
+
+
+    
+
 
 def caller():
     # image_to_hide_path = input("Enter path of image to be hidden: ")
@@ -202,12 +233,13 @@ def caller():
             print("\n\nImage embedded successfully!! Check encoded.tiff and use it for retrieving original image.")
 
         elif ch == 2:
+            password = input("Enter password for encryption: ")
             encoded_image_path = input("Enter path to encoded image: ")
             decoded_image_path = "./output/decoded.tiff"
             n_bits = 1
 
             image_to_decode = Image.open(encoded_image_path)
-            decode(image_to_decode, n_bits).save(decoded_image_path)
+            decode(image_to_decode, n_bits, password).save(decoded_image_path)
             print("\n\nImage retrieved successfully!! decoded.tiff is your original image.")
 
         elif ch == 3:

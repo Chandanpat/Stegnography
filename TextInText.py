@@ -45,6 +45,7 @@ def decrypt(key, cypherText):
 
 def txt_encode(encrypted_message):
     res1 = ''.join(format(byte, '08b') for byte in encrypted_message)
+    print(res1)
     print("The string after binary conversion applying all the transformations:", res1)
     length = len(res1)
     print("Length of binary after conversion:", length)
@@ -67,7 +68,8 @@ def txt_encode(encrypted_message):
         HM_SK = ""
         while j < 12:
             x = res1[i:i + 2]
-            HM_SK += ZWC[x]
+            if x:
+                HM_SK += ZWC[x]
             i += 2
             j += 1
         s1 = s + HM_SK
@@ -163,6 +165,8 @@ def encode_txt_data(password):
 def BinaryToDecimal(binary):
     string = int(binary, 2)
     return string
+
+
 
 def decode_txt_data(password):
     ZWC_reverse={u'\u200C':"00",u'\u202C':"01",u'\u202D':"11",u'\u200E':"10"}
