@@ -51,7 +51,7 @@ def hide_text_in_audio(audio_file, message, output_file,password):
     # binary_message = ''.join(format(ord(char), '08b') for char in message)
 
     key = key_generator(password)
-    print(key)
+    # print(key)
     encrypted_message = encrypt(key, message)
 
     # Check if the audio file can hold the message
@@ -77,7 +77,7 @@ def hide_text_in_audio(audio_file, message, output_file,password):
         output.setparams(audio.getparams())
         output.writeframes(encoded_frames)
 
-    print("Message hidden successfully! Output file saved as", output_path)
+    print("Message hidden successfully! Output file saved as: ", output_path)
 
 
 # Function to extract a hidden text message from an audio file
@@ -126,7 +126,7 @@ def extract_text_from_audio(encoded_audio_file, password):
     if str(password1, "utf-8") == password.strip():
         decrypted_message = decrypt(key, encrypted_message)
         message = decrypted_message.decode("utf-8")
-        print("Extracted Message:", message)  # Print the extracted message as text
+        print("Extracted Message: ", message)  # Print the extracted message as text
     else:
         print("Invalid Password!!")
 
@@ -157,16 +157,16 @@ def caller():
 
         if ch == 1:
             password = input("Enter password for encryption: ")
-            # audio_file= input("Enter path of Audio: ")
-            audio_file= "./resources/audio_file.wav"
+            audio_file= input("Enter path of cover Audio: ")
+            # audio_file= "./resources/audio_file.wav"
             message=bytes(input("Enter the text message to hide:"), "utf-8")
-            output_file = "encoded.wav"
+            output_file = input("Enter the name stego file with extension: ")
             hide_text_in_audio(audio_file, message, output_file,password) 
 
         elif ch == 2:
             password = input("Enter password for decryption:")
-            # encoded_audio_file = input("Enter the path of the encoded audio file: ")
-            encoded_audio_file = "./output/encoded.wav"
+            encoded_audio_file = input("Enter the path of the encoded audio file: ")
+            # encoded_audio_file = "./output/encoded.wav"
             extract_text_from_audio(encoded_audio_file, password)
 
         elif ch == 3:

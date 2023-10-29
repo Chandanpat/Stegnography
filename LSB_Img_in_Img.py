@@ -9,7 +9,7 @@ from Crypto.Util.Padding import pad, unpad
 
 
 def encrypt(key, data):
-    print(type(data))
+    # print(type(data))
     cipher = AES.new(key, AES.MODE_CBC)
     ciphertext = cipher.encrypt(pad(data, AES.block_size))
     # print(ciphered_data)
@@ -107,9 +107,9 @@ def encode(image_to_hide, image_to_hide_in, n_bits, password):
     data = []
 
     key = key_generator(password)
-    print(key)
+    # print(key)
     image_bytes = image_to_hide.tobytes()
-    print(image_bytes)
+    # print(image_bytes)
     encrypted_image = encrypt(key, image_bytes)
 
     # Use an iterator for the encrypted image bytes
@@ -177,7 +177,7 @@ def decode(image_to_decode, n_bits, password):
         # Decrypt the image using the provided password
         decrypted_image_bytes = decrypted_image.tobytes()
         original_image_bytes = decrypt(key, decrypted_image_bytes)
-        print(original_image_bytes)
+        # print(original_image_bytes)
 
         # Create a new image from the decrypted image bytes
         original_image = Image.frombytes("RGB", decrypted_image.size, original_image_bytes)
@@ -220,10 +220,10 @@ def caller():
 
         if ch == 1:
             password = input("Enter password for encryption: ")
-            # image_to_hide_path = input("Enter path of image to be hidden: ")
-            image_to_hide_path = "./resources/secret.tiff"
-            # image_to_hide_in_path = input("Enter path to cover image: ")
-            image_to_hide_in_path = "./resources/input.tiff"
+            image_to_hide_path = input("Enter path of image to be hidden: ")
+            # image_to_hide_path = "./resources/secret.tiff"
+            image_to_hide_in_path = input("Enter path to cover image: ")
+            # image_to_hide_in_path = "./resources/input.tiff"
             encoded_image_path = "./output/encoded.tiff"
             n_bits = 1
 
