@@ -13,7 +13,7 @@ def encrypt(key, data):
     cipher = AES.new(key, AES.MODE_CBC)
     ciphertext = cipher.encrypt(pad(data, AES.block_size))
     # print(ciphered_data)
-    with open('./output/encrypted.bin', 'wb') as f:
+    with open('./output/encrypted_ii.bin', 'wb') as f:
         f.write(cipher.iv)
         f.write(ciphertext)
     return ciphertext
@@ -24,7 +24,7 @@ def key_generator(password):
     # print(simple_key)
     salt = simple_key
     key = PBKDF2(password, salt, dkLen=32)
-    with open('./output/key.bin', 'wb') as f:
+    with open('./output/key_ii.bin', 'wb') as f:
         password1 = bytes(password + "\n", "utf-8")
         # print(password1)
         f.write(password1)
@@ -33,7 +33,7 @@ def key_generator(password):
 
 
 def decrypt(key, cypherText):
-    with open('./output/encrypted.bin', 'rb') as f:
+    with open('./output/encrypted_ii.bin', 'rb') as f:
         iv = f.read(16)
         cypherText = f.read()
         cipher = AES.new(key, AES.MODE_CBC, iv=iv)

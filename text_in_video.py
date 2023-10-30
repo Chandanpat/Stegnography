@@ -15,7 +15,7 @@ def encrypt(key, msg):
     cipher = AES.new(key, AES.MODE_CBC)
     ciphered_data = cipher.encrypt(pad(msg, AES.block_size))
     # print(ciphered_data)
-    with open('./output/encrypted.bin', 'wb') as f:
+    with open('./output/encrypted_tv.bin', 'wb') as f:
         f.write(cipher.iv)
         f.write(ciphered_data)
     return ciphered_data
@@ -26,7 +26,7 @@ def key_generator(password):
     # print(simple_key)
     salt = simple_key
     key = PBKDF2(password, salt, dkLen=32)
-    with open('./output/key.bin', 'wb') as f:
+    with open('./output/key_tv.bin', 'wb') as f:
         password1 = bytes(password + "\n", "utf-8")
         # print(password1)
         f.write(password1)
@@ -35,7 +35,7 @@ def key_generator(password):
 
 
 def decrypt(key, cypherText):
-    with open('./output/encrypted.bin', 'rb') as f:
+    with open('./output/encrypted_tv.bin', 'rb') as f:
         iv = f.read(16)
         cypherText = f.read()
         cipher = AES.new(key, AES.MODE_CBC, iv=iv)
