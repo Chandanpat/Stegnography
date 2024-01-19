@@ -165,7 +165,7 @@ def decode(image_to_decode, n_bits, password):
     decrypted_image = make_image(data, image_to_decode.size)
 
 
-    with open('./output/key.bin', 'rb') as f:
+    with open('./output/key_ii.bin', 'rb') as f:
         data = f.read()
     contents = data.splitlines()
     # print(contents)
@@ -224,23 +224,23 @@ def caller():
             # image_to_hide_path = "./resources/secret.tiff"
             image_to_hide_in_path = input("Enter path to cover image: ")
             # image_to_hide_in_path = "./resources/input.tiff"
-            encoded_image_path = "./output/encoded.tiff"
+            encoded_image_path = "./output/encoded.jpg"
             n_bits = 1
 
             image_to_hide = Image.open(image_to_hide_path)
             image_to_hide_in = Image.open(image_to_hide_in_path)
             encode(image_to_hide, image_to_hide_in, n_bits, password).save(encoded_image_path)
-            print("\n\nImage embedded successfully!! Check encoded.tiff and use it for retrieving original image.")
+            print("\n\nImage embedded successfully!! Check encoded.jpg and use it for retrieving original image.")
 
         elif ch == 2:
             password = input("Enter password for encryption: ")
             encoded_image_path = input("Enter path to encoded image: ")
-            decoded_image_path = "./output/decoded.tiff"
+            decoded_image_path = "./output/decoded.jpg"
             n_bits = 1
 
             image_to_decode = Image.open(encoded_image_path)
             decode(image_to_decode, n_bits, password).save(decoded_image_path)
-            print("\n\nImage retrieved successfully!! decoded.tiff is your original image.")
+            print("\n\nImage retrieved successfully!! decoded.jpg is your original image.")
 
         elif ch == 3:
             print("\n\nExiting.....")

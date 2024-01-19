@@ -112,7 +112,7 @@ def audiotoimage(audio_path, image_path):
     # print(allchannel)
     # print("Type = ",type(allchannel))
 
-    cv2.imwrite(image_path, allchannel,[cv2.IMWRITE_PNG_COMPRESSION,9])
+    # cv2.imwrite(image_path, allchannel,[cv2.IMWRITE_PNG_COMPRESSION,9])
     encoded_img = input("Enter name of the stego file with extension: ")
     cv2.imwrite("./output/"+encoded_img, allchannel,[cv2.IMWRITE_PNG_COMPRESSION,9])
 

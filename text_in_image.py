@@ -75,7 +75,7 @@ def retrieve_msg_from_image(password):
     # print((encrypted_message))
     # password = "1234"
     # key = key_generator(password)
-    with open('./output/key.bin', 'rb') as f:
+    with open('./output/key_ti.bin', 'rb') as f:
         data = f.read()
     contents = data.splitlines()
     # print(contents)

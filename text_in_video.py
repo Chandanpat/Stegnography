@@ -184,7 +184,7 @@ def encode_vid_data(password):
 
 
 def decode_vid_data(frame_,password):
-    with open('./output/key.bin', 'rb') as f:
+    with open('./output/key_tv.bin', 'rb') as f:
         data = f.read()
     contents = data.splitlines()
     # print(contents)
