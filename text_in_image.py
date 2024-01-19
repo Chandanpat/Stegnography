@@ -9,7 +9,7 @@ def encrypt(key, password, msg):
     cipher = AES.new(key, AES.MODE_CBC)
     ciphered_data = cipher.encrypt(pad(msg, AES.block_size))
     # print(ciphered_data)
-    with open('./output/encrypted.bin', 'wb') as f:
+    with open('./output/encrypted_ti.bin', 'wb') as f:
         f.write(cipher.iv)
         f.write(ciphered_data)
     return ciphered_data
@@ -20,7 +20,7 @@ def key_generator(password):
     # print(simple_key)
     salt = simple_key
     key = PBKDF2(password, salt, dkLen=32)
-    with open('./output/key.bin', 'wb') as f:
+    with open('./output/key_ti.bin', 'wb') as f:
         password1 = bytes(password + "\n", "utf-8")
         # print(password1)
         f.write(password1)
@@ -29,7 +29,7 @@ def key_generator(password):
 
 
 def decrypt(key, cypherText):
-    with open('./output/encrypted.bin', 'rb') as f:
+    with open('./output/encrypted_ti.bin', 'rb') as f:
         iv = f.read(16)
         cypherText = f.read()
         cipher = AES.new(key, AES.MODE_CBC, iv=iv)
@@ -75,7 +75,7 @@ def retrieve_msg_from_image(password):
     # print((encrypted_message))
     # password = "1234"
     # key = key_generator(password)
-    with open('./output/key.bin', 'rb') as f:
+    with open('./output/key_ti.bin', 'rb') as f:
         data = f.read()
     contents = data.splitlines()
     # print(contents)
