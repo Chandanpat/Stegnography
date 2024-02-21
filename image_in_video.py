@@ -187,7 +187,8 @@ def decrypt_image(key, encrypted_data, image_shape):
 
 
 def embed_image(frame, password):
-    image_path = "./resources/image_file3.png"  # Path to the image to be embedded
+    # image_path = "./resources/image_file3.png"  # Path to the image to be embedded
+    image_path = input("Enter path of image to be embedded: ")
     key = key_generator(password)
     encrypted_image, image_shape = encrypt_image(key, image_path)
 
@@ -247,8 +248,8 @@ def extract_image(frame, key, image_shape):
 
 
 def encode_vid_image(password):
-    # cover_video = input("Enter path of cover video: ")
-    cover_video = "./resources/cover_video.mp4"
+    cover_video = input("Enter path of cover video: ")
+    # cover_video = "./resources/cover_video.mp4"
     cap = cv2.VideoCapture(cover_video)
     vidcap = cv2.VideoCapture(cover_video)
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -256,9 +257,9 @@ def encode_vid_image(password):
     frame_height = int(vidcap.get(4))
 
     size = (frame_width, frame_height)
-    # stego_video = input("Enter name of stego video with extension: ")
+    stego_video = input("Enter name of stego video with extension: ")
     # stego_video = "./output/" + stego_video
-    stego_video = "./output/output1.mp4"
+    # stego_video = "./output/output1.mp4"
     out = cv2.VideoWriter(stego_video, fourcc, 25.0, size)
     max_frame = 0
 
