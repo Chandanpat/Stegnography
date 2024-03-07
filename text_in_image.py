@@ -37,7 +37,9 @@ def decrypt(key, cypherText):
     return og
 
 
-def hide_msg_in_image(password, msg, path):
+def hide_msg_in_image(password):
+    msg = bytes(input("Enter message to be encrypted: "), "utf-8")
+    path = input("Enter path of cover image: ")
     # msg = bytes(message, "utf-8")
     image = Image.open(path)
     # print(image)
@@ -60,8 +62,9 @@ def hide_msg_in_image(password, msg, path):
     # print(encoded_pixel)
     encoded_image = Image.new(image.mode, image.size)
     encoded_image.putdata(encoded_pixels)
-    encoded_image.save('./output/image_hidden.png')
-    print("\n\nText embedded successfully!! Use image_hidden.png to retrieve the message.")
+    file_name = input("Enter the name of stego to be generated: ")
+    encoded_image.save('./output/'+ file_name)
+    print("\n\nText embedded successfully!! Use ./output/",file_name," to retrieve the message.")
 
 
 def retrieve_msg_from_image(password):
@@ -86,7 +89,7 @@ def retrieve_msg_from_image(password):
     if str(password1, "utf-8") == password.strip():
         decrypted_message = decrypt(key, encrypted_message)
         message = decrypted_message.decode("utf-8")
-        print("\n\n", message)
+        print("\n\nMessage after decoding from the stego file:- ", message)
     else:
         print("Invalid Password!!")
 
@@ -101,9 +104,7 @@ def caller():
 
         if ch == 1:
             password = input("Enter password for encryption: ")
-            msg = bytes(input("Enter message to be encrypted: "), "utf-8")
-            path = input("Enter path of cover image: ")
-            hide_msg_in_image(password, msg, path)
+            hide_msg_in_image(password)
 
         elif ch == 2:
             password = input("Enter password for decryption:")

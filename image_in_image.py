@@ -1,5 +1,3 @@
-# watch the video for this project here: https://youtu.be/bZ88gnHzwz8
-
 from PIL import Image
 from Crypto.Random import get_random_bytes
 from Crypto.Protocol.KDF import PBKDF2
@@ -64,42 +62,16 @@ def get_n_most_significant_bits(value, n):
 def shit_n_bits_to_8(value, n):
     return value << MAX_BIT_VALUE - n
 
-# def encode(image_to_hide, image_to_hide_in, n_bits):
 
-#     width, height = image_to_hide.size
-
-#     hide_image = image_to_hide.load()
-#     hide_in_image = image_to_hide_in.load()
-
-#     data = []
-
-#     for y in range(height):
-#         for x in range(width):
-
-#             # (107, 3, 10)
-#             # most sig bits
-#             r_hide, g_hide, b_hide = hide_image[x,y]
-
-#             r_hide = get_n_most_significant_bits(r_hide, n_bits)
-#             g_hide = get_n_most_significant_bits(g_hide, n_bits)
-#             b_hide = get_n_most_significant_bits(b_hide, n_bits)
-
-#             # remove lest n sig bits
-#             r_hide_in, g_hide_in, b_hide_in = hide_in_image[x,y]
-
-#             r_hide_in = remove_n_least_significant_bits(r_hide_in, n_bits)
-#             g_hide_in = remove_n_least_significant_bits(g_hide_in, n_bits)
-#             b_hide_in = remove_n_least_significant_bits(b_hide_in, n_bits)
-
-#             data.append((r_hide + r_hide_in, 
-#                          g_hide + g_hide_in,
-#                          b_hide + b_hide_in))
-            
-#     print(data)
-#     return make_image(data, image_to_hide.size)
-
-
-def encode(image_to_hide, image_to_hide_in, n_bits, password):
+def encode(password):
+    image_to_hide_path = input("Enter path of image to be hidden: ")
+    # image_to_hide_path = "./resources/secret.tiff"
+    image_to_hide_in_path = input("Enter path to cover image: ")
+    # image_to_hide_in_path = "./resources/input.tiff"
+    encoded_image_path = "./output/"+input("Enter the name of stego file to be generated: ")
+    n_bits = 1
+    image_to_hide = Image.open(image_to_hide_path)
+    image_to_hide_in = Image.open(image_to_hide_in_path)
     width, height = image_to_hide.size
     hide_image = image_to_hide.load()
     hide_in_image = image_to_hide_in.load()
@@ -139,10 +111,15 @@ def encode(image_to_hide, image_to_hide_in, n_bits, password):
                 # If there's no more data in the encrypted image, break the loop
                 break
     
-    return make_image(data, image_to_hide.size)
+    make_image(data, image_to_hide.size).save(encoded_image_path)
+    print("\n\nStego file has successfully generated. Use ./output/",encoded_image_path," for decoding")
 
 
-def decode(image_to_decode, n_bits, password):
+def decode(password):
+    encoded_image_path = input("Enter the path of encoded image: ")
+    decoded_image_path = "./output/"+input("Enter the name of output file to be generated: ")
+    n_bits = 1
+    image_to_decode = Image.open(encoded_image_path)
     width, height = image_to_decode.size
     encoded_image = image_to_decode.load()
 
@@ -181,38 +158,14 @@ def decode(image_to_decode, n_bits, password):
 
         # Create a new image from the decrypted image bytes
         original_image = Image.frombytes("RGB", decrypted_image.size, original_image_bytes)
-        return original_image
+        original_image.save(decoded_image_path)
 
     else:
         print("Invalid Password!!")
         return 0
 
-    
-
-
-
-
-    
-
 
 def caller():
-    # image_to_hide_path = input("Enter path of image to be hidden: ")
-    # image_to_hide_in_path = r"D:\VIT\Major_Project\Stegnography\input.tiff"
-    # image_to_hide_in_path = input("Enter path to cover image: ")
-    # encoded_image_path = "./output/encoded.tiff"
-    # encoded_image_path = input("Enter path to encoded image: ")
-    # decoded_image_path = "./output/decoded.tiff"
-    # n_bits = 1
-    # print("end")
-
-    # image_to_hide = Image.open(image_to_hide_path)
-    # image_to_hide_in = Image.open(image_to_hide_in_path)
-    # encode(image_to_hide, image_to_hide_in, n_bits).save(encoded_image_path)
-    
-    # image_to_decode = Image.open(encoded_image_path)
-    # decode(image_to_decode, n_bits).save(decoded_image_path)
-
-
 
     while True:
         print("\n\n\t1. Hide Image in image\n\t2. Retrieve Image from image\n\t3. Exit")
@@ -220,28 +173,12 @@ def caller():
 
         if ch == 1:
             password = input("Enter password for encryption: ")
-            image_to_hide_path = input("Enter path of image to be hidden: ")
-            # image_to_hide_path = "./resources/secret.tiff"
-            image_to_hide_in_path = input("Enter path to cover image: ")
-            # image_to_hide_in_path = "./resources/input.tiff"
-            encoded_image_path = "./output/encoded.jpg"
-            n_bits = 1
-
-            image_to_hide = Image.open(image_to_hide_path)
-            image_to_hide_in = Image.open(image_to_hide_in_path)
-            encode(image_to_hide, image_to_hide_in, n_bits, password).save(encoded_image_path)
-            print("\n\nImage embedded successfully!! Check encoded.jpg and use it for retrieving original image.")
+            encode(password)
 
         elif ch == 2:
-            password = input("Enter password for encryption: ")
-            encoded_image_path = input("Enter path to encoded image: ")
-            decoded_image_path = "./output/decoded.jpg"
-            n_bits = 1
-
-            image_to_decode = Image.open(encoded_image_path)
-            decode(image_to_decode, n_bits, password).save(decoded_image_path)
-            print("\n\nImage retrieved successfully!! decoded.jpg is your original image.")
-
+            password = input("Enter password for decryption: ")
+            decode(password)
+            
         elif ch == 3:
             print("\n\nExiting.....")
             break
