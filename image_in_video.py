@@ -210,7 +210,10 @@ def embed_image(frame, password):
                 index_data += 1
             if index_data >= length_data:
                 break
+<<<<<<< HEAD
     # print("\n\n\nImage embedded successfully! Stego video saved as: ",image_path)
+=======
+>>>>>>> main
     return frame, image_shape
 
 def extract_image(frame, key, image_shape):
@@ -258,7 +261,11 @@ def encode_vid_image(password):
     frame_height = int(vidcap.get(4))
 
     size = (frame_width, frame_height)
+<<<<<<< HEAD
     stego_video = input("Enter path of stego video with extension: ")
+=======
+    stego_video = input("Enter name of stego video with extension: ")
+>>>>>>> main
     # stego_video = "./output/" + stego_video
     # stego_video = "./output/output1.mp4"
     out = cv2.VideoWriter(stego_video, fourcc, 25.0, size)
@@ -284,7 +291,11 @@ def encode_vid_image(password):
             frame, image_shape = embed_image(frame, password)
         out.write(frame)
 
+<<<<<<< HEAD
     print("\n\n\nImage embedded successfully! Stego video saved as: ",stego_video)
+=======
+    print("\nEncoded the data successfully in the video file.")
+>>>>>>> main
     return frame, image_shape
 
 
@@ -327,7 +338,11 @@ def decode_vid_image(frame, password, image_shape):
                 # Save the extracted image
                 output_image_path = "./output/extracted_image.png"
                 cv2.imwrite(output_image_path, extracted_image)
+<<<<<<< HEAD
                 print(f"\n\n\nExtracted image saved at: {output_image_path}")
+=======
+                print(f"Extracted image saved at: {output_image_path}")
+>>>>>>> main
                 return
     else:
         print("Invalid Password!!")
