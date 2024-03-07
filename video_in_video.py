@@ -3,288 +3,88 @@ import os
 import shutil
 import sys
 from datetime import datetime
-from multiprocessing import Pool
-from functools import partial
 import tqdm
 from PIL import Image
 import numpy as np
-# from dnacryptograpy import DNAencrypt, DNAdecrypt
 from Crypto.Random import get_random_bytes
 from Crypto.Protocol.KDF import PBKDF2
-# from cryptography.hazmat.backends import default_backend
-# from cryptography.hazmat.primitives import padding
-# from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-import os
-from distutils.log import error
-from collections import deque
-from datetime import datetime
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad, unpad
 
-
-def indexTable(key):
-    key = key - 1
-    defaultTable = ["AAAA", "AAAC", "AAAG", "AAAT", "AACA", "AACC", "AACG", "AACT", "AAGA", "AAGC", "AAGG", "AAGT", "AATA", "AATC", "AATG", "AATT", "ACAA", "ACAC", "ACAG", "ACAT", "ACCA", "ACCC", "ACCG", "ACCT", "ACGA", "ACGC", "ACGG", "ACGT", "ACTA", "ACTC", "ACTG", "ACTT",
-                    "CAAA", "CAAC", "CAAG", "CAAT", "CACA", "CACC", "CACG", "CACT", "CAGA", "CAGC", "CAGG", "CAGT", "CATA", "CATC", "CATG", "CATT", "CCAA", "CCAC", "CCAG", "CCAT", "CCCA", "CCCC", "CCCG", "CCCT", "CCGA", "CCGC", "CCGG", "CCGT", "CCTA", "CCTC", "CCTG", "CCTT",
-                    "GAAA", "GAAC", "GAAG", "GAAT", "GACA", "GACC", "GACG", "GACT", "GAGA", "GAGC", "GAGG", "GAGT", "GATA", "GATC", "GATG", "GATT", "GCAA", "GCAC", "GCAG", "GCAT", "GCCA", "GCCC", "GCCG", "GCCT", "GCGA", "GCGC", "GCGG", "GCGT", "GCTA", "GCTC", "GCTG", "GCTT",
-                    "TAAA", "TAAC", "TAAG", "TAAT", "TACA", "TACC", "TACG", "TACT", "TAGA", "TAGC", "TAGG", "TAGT", "TATA", "TATC", "TATG", "TATT", "TCAA", "TCAC", "TCAG", "TCAT", "TCCA", "TCCC", "TCCG", "TCCT", "TCGA", "TCGC", "TCGG", "TCGT", "TCTA", "TCTC", "TCTG", "TCTT",
-                    "AGAA", "AGAC", "AGAG", "AGAT", "AGCA", "AGCC", "AGCG", "AGCT", "AGGA", "AGGC", "AGGG", "AGGT", "AGTA", "AGTC", "AGTG", "AGTT", "ATAA", "ATAC", "ATAG", "ATAT", "ATCA", "ATCC", "ATCG", "ATCT", "ATGA", "ATGC", "ATGG", "ATGT", "ATTA", "ATTC", "ATTG", "ATTT",
-                    "CGAA", "CGAC", "CGAG", "CGAT", "CGCA", "CGCC", "CGCG", "CGCT", "CGGA", "CGGC", "CGGG", "CGGT", "CGTA", "CGTC", "CGTG", "CGTT", "CTAA", "CTAC", "CTAG", "CTAT", "CTCA", "CTCC", "CTCG", "CTCT", "CTGA", "CTGC", "CTGG", "CTGT", "CTTA", "CTTC", "CTTG", "CTTT",
-                    "GGAA", "GGAC", "GGAG", "GGAT", "GGCA", "GGCC", "GGCG", "GGCT", "GGGA", "GGGC", "GGGG", "GGGT", "GGTA", "GGTC", "GGTG", "GGTT", "GTAA", "GTAC", "GTAG", "GTAT", "GTCA", "GTCC", "GTCG", "GTCT", "GTGA", "GTGC", "GTGG", "GTGT", "GTTA", "GTTC", "GTTG", "GTTT",
-                    "TGAA", "TGAC", "TGAG", "TGAT", "TGCA", "TGCC", "TGCG", "TGCT", "TGGA", "TGGC", "TGGG", "TGGT", "TGTA", "TGTC", "TGTG", "TGTT", "TTAA", "TTAC", "TTAG", "TTAT", "TTCA", "TTCC", "TTCG", "TTCT", "TTGA", "TTGC", "TTGG", "TTGT", "TTTA", "TTTC", "TTTG", "TTTT"]
-    if key > 255:
-        return error("Key is too large (> 256)") 
-    if key > 0:
-        table = deque(defaultTable)
-        table.rotate(-key)
-        return table
-    else:
-        return defaultTable
-
-def encryption(binary, table):
-    i = 0
-    j = 0
-    dnaoutput = ""
-    output = ""
-    while i < len(binary):
-        bitpair = binary[i:i+2]
-        if bitpair == "00":
-            dnaoutput += "A"
-        elif bitpair == "01":
-            dnaoutput += "T"
-        elif bitpair == "10":
-            dnaoutput += "G"
-        elif bitpair == "11":
-            dnaoutput += "C"
-        j += 1
-        i += 2
-        if j == 4:
-            output += '{0:08b}'.format(table.index(dnaoutput))
-            j = 0
-            dnaoutput = ""
-    return output
-
-def DNAencrypt(key, data):
-    table = indexTable(key)
-    overflow = ""
-    if len(data)%8 != 0:
-        overflow = data[-(len(data)%8):] 
-        data = data[:(len(data)-(len(data)%8))] 
-    start = datetime.now()
-    encrypted = encryption(data, table)
-    encrypted = encrypted + overflow
-    return encrypted
-
-
-def EncodedBinarytoDNA(cipher, table):
-    i = 0
-    output = ""
-    while i < len(cipher):
-        binarysequence = cipher[i:i+8]
-        index = int(binarysequence, 2)
-        output += table[index]
-        i += 8
-    return output
-
-def dnaToBinary(binary):
-    i = 0
-    output = ""
-    while i < len(binary):
-        letter = binary[i]
-        if letter == "A":
-            output += "00"
-        elif letter == "T":
-            output += "01"
-        elif letter == "G":
-            output += "10"
-        elif letter == "C":
-            output += "11"
-        i += 1
-    return output
-
-def DNAdecrypt(key, cipher):
-    table = indexTable(key)
-    overflow = ""
-    if len(cipher)%8 != 0:
-        overflow = cipher[-(len(cipher)%8):]
-        cipher = cipher[:(len(cipher)-(len(cipher)%8))]
-    start = datetime.now()
-    dna = EncodedBinarytoDNA(cipher, table)
-    start2 = datetime.now()
-    decrypted = dnaToBinary(dna) + overflow
-    return decrypted
-
-
-
-# def key_generator(password):
-#     simple_key = get_random_bytes(16)
-#     # print(simple_key)
-#     salt = simple_key
-#     key = PBKDF2(password, salt, dkLen=32)
-#     with open('./output/key_vv.bin', 'wb') as f:
-#         password1 = bytes(password + "\n", "utf-8")
-#         # print(password1)
-#         f.write(password1)
-#         f.write(key)
-#     return key
-
+def encrypt(key, data):
+    # print(type(data))
+    cipher = AES.new(key, AES.MODE_CBC)
+    ciphertext = cipher.encrypt(pad(data, AES.block_size))
+    # print(ciphered_data)
+    with open('./output/encrypted_vv.bin', 'wb') as f:
+        f.write(cipher.iv)
+        f.write(ciphertext)
+    return ciphertext
 
 
 def key_generator(password):
-    simple_key = get_random_bytes(16)
+    simple_key = get_random_bytes(32)
+    # print(simple_key)
     salt = simple_key
     key = PBKDF2(password, salt, dkLen=32)
-    # Convert the key to an integer
-    key_integer = int.from_bytes(key, byteorder='big') % 256
     with open('./output/key_vv.bin', 'wb') as f:
         password1 = bytes(password + "\n", "utf-8")
+        # print(password1)
         f.write(password1)
-        f.write(key_integer.to_bytes((key_integer.bit_length() + 7) // 8, byteorder='big'))
-    return key_integer
+        f.write(key)
+    return key
 
 
+def decrypt(key, cypherText):
+    with open('./output/encrypted_vv.bin', 'rb') as f:
+        iv = f.read(16)
+        cypherText = f.read()
+        cipher = AES.new(key, AES.MODE_CBC, iv=iv)
+        og = unpad(cipher.decrypt(cypherText), AES.block_size)
+    return og
+
+MAX_COLOR_VALUE = 256
+MAX_BIT_VALUE = 8
+
+def make_image(data, resolution):
+    image = Image.new("RGB", resolution)
+    image.putdata(data)
+
+    return image
+
+def remove_n_least_significant_bits(value, n):
+    value = value >> n 
+    return value << n
+
+def get_n_least_significant_bits(value, n):
+    value = value << MAX_BIT_VALUE - n
+    value = value % MAX_COLOR_VALUE
+    return value >> MAX_BIT_VALUE - n
+
+def get_n_most_significant_bits(value, n):
+    return value >> MAX_BIT_VALUE - n
+
+def shit_n_bits_to_8(value, n):
+    return value << MAX_BIT_VALUE - n
 
 def setupTempDir():
-    os.mkdir("output/temp/")
-
-
+    os.makedirs("output/temp/", exist_ok=True)
 
 def cleanupTempFiles():
-    shutil.rmtree("output/temp/")
-
-
-
-def getImageDimensions(image_name):
-    with Image.open(image_name) as img:
-        if img.format != 'BMP':
-            print(image_name + " must be .bmp format.")
-        width, height = img.size
-        return(width, height)
-    
-
-
-def stegoEncode(secret, cover, output):
-    # Writing to encrypted image
-    cover_image = Image.open(cover)
-    cover_image.save(output) 
-    
-    output_image = Image.open(cover)
-    # output_rgb = output_image.convert("RGB")
-    width, height = output_image.size
-
-    # pixels = output_rgb.load()
-    
-    data = np.asarray(output_image)
-
-    #Embedding main payload at the beginning of the file
-    i = 0
-    finished = False
-    for y in range(height):
-        for x in range(width):
-            r, g, b = data[y, x]
-
-            #Red pixel
-            if i < len(secret):
-                # r_bit = bin(r)
-                # r_new_final_bit = secret[i]
-                new_bit_red_pixel = int(bin(r)[:-1]+str(secret[i]), 2)
-                i += 1
-            #Green pixel
-            if i < len(secret):
-                # g_bit = bin(g)
-                # g_new_final_bit = secret[i]
-                new_bit_green_pixel = int(bin(g)[:-1]+str(secret[i]), 2)
-                i += 1
-            #Blue pixel
-            if i < len(secret):
-                # b_bit = bin(b)
-                # b_new_final_bit = secret[i]
-                new_bit_blue_pixel = int(bin(b)[:-1]+str(secret[i]), 2)
-                i += 1
-
-            if i <= len(secret):
-                data[y, x] = (new_bit_red_pixel, new_bit_green_pixel, new_bit_blue_pixel)
-                if i >= len(secret):
-                    i += 1
-                    finished = True
-                    break
-        if finished:
-            break
-
-
-
-def encryptSecretImage(secret_image_name, key):
-    with open(secret_image_name, "rb") as image:
-            #Read image data in binary
-            secret_image_bytes = bytes(image.read())
-            image.close()
-            secret_image_name_bytes = str.encode(secret_image_name)
-            payload = secret_image_name_bytes + secret_image_bytes
-
-    final_payload = payload
-    raw_data = bin(int.from_bytes(final_payload, byteorder=sys.byteorder))[2:]
-    cipher = DNAencrypt(key, raw_data)
-    return(cipher)
-        
-
-
-# def encryptSecretImage(secret_image_name, key):
-#     with open(secret_image_name, "rb") as image_file:
-#         secret_image_bytes = image_file.read()
-
-#     # Pad the secret image bytes to make its length a multiple of 16
-#     padder = padding.PKCS7(128).padder()
-#     padded_data = padder.update(secret_image_bytes)
-#     padded_data += padder.finalize()
-
-#     # Encrypt the padded data using AES in CBC mode
-#     iv = os.urandom(16)  # Generate a random IV (Initialization Vector)
-#     cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=default_backend())
-#     encryptor = cipher.encryptor()
-#     encrypted_data = encryptor.update(padded_data) + encryptor.finalize()
-
-#     # Concatenate the IV and encrypted data
-#     ciphertext = iv + encrypted_data
-
-#     return ciphertext, key
-
-
-
-# def decryptSecretImage(cipher, key):
-#     plaintext = DNAdecrypt(key, cipher)
-    
-#     def bitstring_to_bytes(s):
-#         return int(s, 2).to_bytes((len(s) + 7) // 8, byteorder='little')
-
-#     plaintext = bitstring_to_bytes(str(plaintext))
-    
-
-#     try:
-#         filename = (plaintext[0:(plaintext.rfind(bytes('.bmp', 'utf-8')) + 4)]).decode('utf-8')
-#         plaintext = plaintext[(plaintext.rfind(bytes('.bmp', 'utf-8')) + 4):]
-#     except:
-#         print("Decryption failed.")
-#         return None
-
-
-#     with open(filename, "wb") as write_image:
-#         write_image.write(plaintext)
-#         write_image.close()
-
-
+    shutil.rmtree("output/temp/", ignore_errors=True)
 
 def videoToImages(videoFile, type):
-    valid_extensions = [".avi", ".mp4", ".mov", ".mkv"]  # Add other valid extensions here if needed
+    valid_extensions = [".avi", ".mp4", ".mov", ".mkv"]  
     if any(videoFile.endswith(ext) for ext in valid_extensions):
-        start = datetime.now()
+        os.makedirs("output/temp/"+ type, exist_ok=True)
         vidcap = cv2.VideoCapture(videoFile)
         fps = vidcap.get(cv2.CAP_PROP_FPS)
         success, image = vidcap.read()
         count = 0
-        os.mkdir("output/temp/"+ type)
 
         while success:
             countString = str(count).zfill(10)
-            # save frame as JPEG file
-            cv2.imwrite("output/temp/" + type + "/%s.bmp" % countString, image)
+            cv2.imwrite(f"output/temp/{type}/{type}{countString}.bmp", image)
             success, image = vidcap.read()
             count += 1
         return fps
@@ -292,118 +92,419 @@ def videoToImages(videoFile, type):
         cleanupTempFiles()
         print("Incompatible video type. Supported formats: " + ", ".join(valid_extensions))
 
+# def embedVideoLSB(secretFrame, coverFrame):
+#     secret_image = Image.open(f"output/temp/secret/{secretFrame}")
+#     cover_image = Image.open(f"output/temp/cover/{coverFrame}")
 
+#     # Resize the secret video frame to match the dimensions of the cover video frame
+#     secret_image = secret_image.resize(cover_image.size)
 
-def encodeFrame(secretFrame, key):
-    #Encrypting
-    cipher = encryptSecretImage("output/temp/secret/" + secretFrame, key)
+#     secret_data = np.array(secret_image)
+#     cover_data = np.array(cover_image)
 
-    # Writing to output image
-    stegoEncode(cipher, "output/temp/cover/" + secretFrame, "temp/encoded/%s" % secretFrame)
+#     # Embed secret video data into LSB of cover video data
+#     for i in range(3):  # Iterate over each channel (RGB)
+#         cover_data[:, :, i] = (cover_data[:, :, i] & 0xFE) | ((secret_data[:, :, i] >> 7) & 1)
 
+#     # Create the directory if it doesn't exist
+#     os.makedirs("output/temp/encoded/", exist_ok=True)
 
-
-def framesCompatabilityCheck(secretFrames, coverFrames):
-    if len(secretFrames) > len(coverFrames):
-        cleanupTempFiles()
-        sys.exit("Secret video is longer than cover video.")
-    
-    try:
-        secret_width, secret_height = getImageDimensions("output/temp/secret/" + secretFrames[0])
-        secret_pixel_count = secret_width * secret_height
-    except:
-        print("First secret frame could not be read.")
-        print(secretFrames[0])
-
-    try:
-        cover_width, cover_height = getImageDimensions("output/temp/cover/" + coverFrames[0])
-        cover_pixel_count = cover_width * cover_height
-    except:
-        print("First cover frame could not be read.")
-        print(coverFrames[0])
+#     merged_image = Image.fromarray(cover_data)
+#     merged_image.save(f"output/temp/encoded/{coverFrame}")
         
-    return secret_pixel_count, cover_pixel_count
 
 
+def embedVideoLSB(secretFrame, coverFrame):
+    image_to_hide = Image.open(f"output/temp/secret/{secretFrame}")
+    image_to_hide_in = Image.open(f"output/temp/cover/{coverFrame}")
+    width, height = image_to_hide.size
+    width1,height1 = image_to_hide_in.size
+    hide_image = image_to_hide.load()
+    hide_in_image = image_to_hide_in.load()
 
-def stegoEncodeFrames(key):
-    secretFrames = [img for img in os.listdir('output/temp/secret') if img.endswith(".bmp")]
-    coverFrames = [img for img in os.listdir('output/temp/cover') if img.endswith(".bmp")]
+    data = []
+
+    n_bits = 1
+
+    password = 'qwerty@1234567890'
+    key = key_generator(password)
+    # print(key)
+    image_bytes = image_to_hide.tobytes()
+    # print(image_bytes)
+    encrypted_image = encrypt(key, image_bytes)
+
+    # Use an iterator for the encrypted image bytes
+    encrypted_iterator = iter(encrypted_image)
+
+
+    for y in range(height):
+        for x in range(width):
+            try:
+                # Extract bytes from the encrypted image for each channel
+                r_byte = next(encrypted_iterator)
+                g_byte = next(encrypted_iterator)
+                b_byte = next(encrypted_iterator)
+
+                # Extract the n most significant bits
+                r_hide_pixel = get_n_most_significant_bits(r_byte, n_bits)
+                g_hide_pixel = get_n_most_significant_bits(g_byte, n_bits)
+                b_hide_pixel = get_n_most_significant_bits(b_byte, n_bits)
+
+                # Remove the least n significant bits from the cover image
+                r_hide_in, g_hide_in, b_hide_in = hide_in_image[x, y]
+                r_hide_in = remove_n_least_significant_bits(r_hide_in, n_bits)
+                g_hide_in = remove_n_least_significant_bits(g_hide_in, n_bits)
+                b_hide_in = remove_n_least_significant_bits(b_hide_in, n_bits)
+
+                data.append((r_hide_pixel + r_hide_in, g_hide_pixel + g_hide_in, b_hide_pixel + b_hide_in))
+
+            except StopIteration:
+                # If there's no more data in the encrypted image, break the loop
+                break
+        
+        for x in range(width,width1):
+            # print(x)
+            # print(y)
+            r_hide_in, g_hide_in, b_hide_in = hide_in_image[x, y]
+            data.append((r_hide_in, g_hide_in, b_hide_in))
+
+
+    for y in range(height,height1):
+        for x in range(width1):
+            # print(x)
+            # print(y)
+            r_hide_in, g_hide_in, b_hide_in = hide_in_image[x, y]
+            data.append((r_hide_in, g_hide_in, b_hide_in))
+
+
+    #Create the directory if it doesn't exist
+    os.makedirs("output/temp/encoded/", exist_ok=True)
     
-    secret_pixel_count, cover_pixel_count = framesCompatabilityCheck(secretFrames, coverFrames)
+    make_image(data, image_to_hide_in.size).save(f"output/temp/encoded/{coverFrame}")
 
-    if ((cover_pixel_count / secret_pixel_count) > 8.2):
-        if (len(secretFrames) <= len(coverFrames)):
-            print("File compatability check complete!")
-            
-            os.mkdir("output/temp/encoded")
-            
-            threads = []
-            
-            print("Frame Encoding Progress:")
-            
-            pool = Pool(processes=10)
-            for _ in tqdm.tqdm(pool.imap(partial(encodeFrame, key=key), secretFrames), total=len(secretFrames)):
-                pass
-                
-        else:
-            cleanupTempFiles()
-            print("Video lengths incompatable. Cover video must be longer than the secret video.")
-    else:
-        cleanupTempFiles()
-        print("Frame sizes incompatable. Cover video must be 8 times the resolution of the secret video.")
 
+
+# def embedVideoLSB(secretFrame, coverFrame):
+#     image_to_hide = Image.open(f"output/temp/secret/{secretFrame}")
+#     image_to_hide_in = Image.open(f"output/temp/cover/{coverFrame}")
+#     width, height = image_to_hide.size
+#     width1, height1 = image_to_hide_in.size
+#     hide_image = image_to_hide.load()
+#     hide_in_image = image_to_hide_in.load()
+
+#     # print(width)
+#     # print(height)
+#     # print(width1)
+#     # print(height1)
+
+#     data = []
+
+#     n_bits = 1
+
+#     # a = 0
+#     # b = 0
+
+#     for y in range(height):
+#         # b = 0
+#         for x in range(width):
+#             r_hide_pixel, g_hide_pixel, b_hide_pixel = hide_image[x, y]
+
+#             # Remove the least n significant bits from the cover image
+#             r_hide_in, g_hide_in, b_hide_in = hide_in_image[x, y]
+#             r_hide_in = remove_n_least_significant_bits(r_hide_in, n_bits)
+#             g_hide_in = remove_n_least_significant_bits(g_hide_in, n_bits)
+#             b_hide_in = remove_n_least_significant_bits(b_hide_in, n_bits)
+
+#             data.append((r_hide_pixel + r_hide_in, g_hide_pixel + g_hide_in, b_hide_pixel + b_hide_in))
+
+#             # b+=1
+
+#             # print(b,end=" ")
+
+#         for x in range(width,width1):
+#             # print(x)
+#             # print(y)
+#             r_hide_in, g_hide_in, b_hide_in = hide_in_image[x, y]
+#             data.append((r_hide_in, g_hide_in, b_hide_in))
+#         # print()
+#         # print(b)
+        
+#     #     a+=1
+#     # print(a)
+#     # print(b)
+
+#     for y in range(height,height1):
+#         for x in range(width1):
+#             # print(x)
+#             # print(y)
+#             r_hide_in, g_hide_in, b_hide_in = hide_in_image[x, y]
+#             data.append((r_hide_in, g_hide_in, b_hide_in))
+
+#     # Create the directory if it doesn't exist
+#     os.makedirs("output/temp/encoded/", exist_ok=True)
+
+#     make_image(data, image_to_hide_in.size).save(f"output/temp/encoded/{coverFrame}")
+
+
+
+
+def stegoEncodeFrames():
+    secretFrames = sorted([img for img in os.listdir('output/temp/secret') if img.endswith(".bmp")])
+    coverFrames = sorted([img for img in os.listdir('output/temp/cover') if img.endswith(".bmp")])
+
+    # print(coverFrames)
+    # print(secretFrames)
+
+    print("Frame Encoding Progress:")
+    for i in tqdm.tqdm(range(len(secretFrames))):
+
+        secretFrame = secretFrames[i]
+        coverFrame = coverFrames[i]
+        embedVideoLSB(secretFrame, coverFrame)
+        # print(coverFrames[i])
+        # print(secretFrames[i])
 
 
 def imagesToVideo(video_name, type, fps):
     fourcc = cv2.VideoWriter_fourcc(*'FFV1')
-
-    image_folder = 'output/temp/' + type
-
+    image_folder = f'output/temp/{type}'
     images = [img for img in os.listdir(image_folder) if img.endswith(".bmp")]
     frame = cv2.imread(os.path.join(image_folder, images[0]))
-    height, width, layers = frame.shape
-
+    height, width, _ = frame.shape
     video = cv2.VideoWriter(video_name, fourcc, fps, (width, height))
-
-
     for image in images:
         video.write(cv2.imread(os.path.join(image_folder, image)))
-
     cv2.destroyAllWindows()
     video.release()
 
+# def compareVideos(cover_video, encoded_video):
+#     cover_cap = cv2.VideoCapture(cover_video)
+#     encoded_cap = cv2.VideoCapture(encoded_video)
 
-def main():
+#     while True:
+#         ret_cover, frame_cover = cover_cap.read()
+#         ret_encoded, frame_encoded = encoded_cap.read()
+
+#         if not ret_cover or not ret_encoded:
+#             break
+
+#         # Convert frames to grayscale for comparison
+#         gray_cover = cv2.cvtColor(frame_cover, cv2.COLOR_BGR2GRAY)
+#         gray_encoded = cv2.cvtColor(frame_encoded, cv2.COLOR_BGR2GRAY)
+
+#         # Resize the images to have the same dimensions
+#         height, width = min(gray_cover.shape[0], gray_encoded.shape[0]), min(gray_cover.shape[1], gray_encoded.shape[1])
+#         gray_cover_resized = cv2.resize(gray_cover, (width, height))
+#         gray_encoded_resized = cv2.resize(gray_encoded, (width, height))
+
+#         # Compute absolute difference between resized frames
+#         diff = cv2.absdiff(gray_cover_resized, gray_encoded_resized)
+
+#         # Display the difference or save it to a file
+#         cv2.imshow('Difference', diff)
+#         cv2.waitKey(3000)  # Adjust as needed
+
+#     cover_cap.release()
+#     encoded_cap.release()
+#     cv2.destroyAllWindows()
+
+
+
+def extractFramesFromEncodedVideo(videoFile):
+    os.makedirs("output/temp/extracted_frames/", exist_ok=True)
+    vidcap = cv2.VideoCapture(videoFile)
+    fps = vidcap.get(cv2.CAP_PROP_FPS)
+    success, image = vidcap.read()
+    count = 0
+
+    while success:
+        countString = str(count).zfill(10)
+        cv2.imwrite(f"output/temp/extracted_frames/{countString}.bmp", image)  # Save frames as bmp
+        success, image = vidcap.read()
+        count += 1
+    return fps
+
+
+def stegoDecodeFrames():
+    encodedFrames = sorted([img for img in os.listdir('output/temp/encoded') if img.endswith(".bmp")])
+
+    # print(encodedFrames)
+
+    print("Frame Decoding Progress:")
+    secretFrame = "secret0000000000.bmp"
+    for i in tqdm.tqdm(range(len(encodedFrames))):
+
+        encodedFrame = encodedFrames[i]
+        # print(encodedFrame)
+        extractVideoLSB(encodedFrame,secretFrame)
+
+
+def extractVideoLSB(encodedFrame,secretFrame):
+    image_to_decode = Image.open(f"output/temp/encoded/{encodedFrame}")
+    size_sample = Image.open(f"output/temp/secret/{secretFrame}")
+    width, height = size_sample.size
+    encoded_image = image_to_decode.load()
+
+    data = []
+
+    n_bits = 1
+
+    password = 'qwerty@1234567890'
+
+    for y in range(height):
+        for x in range(width):
+            r_encoded, g_encoded, b_encoded = encoded_image[x, y]
+
+            r_encoded = get_n_least_significant_bits(r_encoded, n_bits)
+            g_encoded = get_n_least_significant_bits(g_encoded, n_bits)
+            b_encoded = get_n_least_significant_bits(b_encoded, n_bits)
+
+            r_encoded = shit_n_bits_to_8(r_encoded, n_bits)
+            g_encoded = shit_n_bits_to_8(g_encoded, n_bits)
+            b_encoded = shit_n_bits_to_8(b_encoded, n_bits)
+
+            data.append((r_encoded, g_encoded, b_encoded))
+
+    decrypted_image = make_image(data, size_sample.size)
+
+    with open('./output/key_vv.bin', 'rb') as f:
+        data = f.read()
+    contents = data.splitlines()
+    # print(contents)
+    password1 = contents[0]
+    key = contents[1]
+
+
+    # Decrypt the image using the provided password
+    with open('./output/key_vv.bin', 'rb') as f:
+        data = f.read()
+    contents = data.splitlines()
+    # print(contents)
+    password1 = contents[0]
+    key = contents[1]
+    # print(key)
+    # print(str(password1, "utf-8"), "\n", password.strip())
+    if str(password1, "utf-8") == password.strip():
+        decrypted_image_bytes = decrypted_image.tobytes()
+        original_image_bytes = decrypt(key, decrypted_image_bytes)
+        # print(original_image_bytes)
+        #Create the directory if it doesn't exist
+        os.makedirs("output/temp/decoded/", exist_ok=True)
+        # Create a new image from the decrypted image bytes
+        original_image = Image.frombytes("RGB", decrypted_image.size, original_image_bytes)
+        original_image.save(f"output/temp/decoded/{encodedFrame}")
+    else:
+        print("Invalid Password!!")
+        return 0
+        
+# def shift_n_bits_to_8(value, n):
+#     # Shift the n least significant bits to the most significant position
+#     return value << (8 - n)
+
+
+# def extractVideoLSB(encodedFrame, secretFrame):
+#     image_to_decode = Image.open(f"output/temp/encoded/{encodedFrame}")
+#     size_sample = Image.open(f"output/temp/secret/{secretFrame}")
+#     width, height = size_sample.size
+#     encoded_image = image_to_decode.load()
+
+#     data = []
+
+#     n_bits = 1
+
+#     password = 'qwerty@1234567890'
+
+#     for y in range(height):
+#         for x in range(width):
+#             r_encoded, g_encoded, b_encoded = encoded_image[x, y]
+
+#             r_encoded = get_n_least_significant_bits(r_encoded, n_bits)
+#             g_encoded = get_n_least_significant_bits(g_encoded, n_bits)
+#             b_encoded = get_n_least_significant_bits(b_encoded, n_bits)
+
+#             r_encoded = shift_n_bits_to_8(r_encoded, n_bits)
+#             g_encoded = shift_n_bits_to_8(g_encoded, n_bits)
+#             b_encoded = shift_n_bits_to_8(b_encoded, n_bits)
+
+#             data.append((r_encoded, g_encoded, b_encoded))
+
+#     # Create the decoded image from the extracted data
+#     decoded_image = make_image(data, size_sample.size)
+
+#     # Save the decoded image
+#     os.makedirs("output/temp/decoded/", exist_ok=True)
+#     decoded_image.save(f"output/temp/decoded/{encodedFrame}")
+
+
+
+
+
+
+# def extractSecretDataFromFrames():
+#     extractedFrames = sorted([img for img in os.listdir('output/temp/extracted_frames/') if img.endswith(".bmp")])  # Look for bmp files
+
+#     secret_data = []
+#     for frame in extractedFrames:
+#         frame_image = Image.open(f"output/temp/extracted_frames/{frame}")
+#         frame_data = np.array(frame_image)
+
+#         # Extract the LSBs from each channel to retrieve the secret data
+#         secret_channel_0 = (frame_data[:, :, 0] & 1) << 7
+#         secret_channel_1 = (frame_data[:, :, 1] & 1) << 7
+#         secret_channel_2 = (frame_data[:, :, 2] & 1) << 7
+        
+#         # Combine the extracted LSBs from each channel
+#         secret_data.extend([secret_channel_0, secret_channel_1, secret_channel_2])
+
+#     return np.array(secret_data)
+
+
+# def reconstructSecretVideo(secret_data, fps):
+#     os.makedirs("output/extracted_secret_video/", exist_ok=True)
+#     secret_frames = []
+#     for i in range(0, len(secret_data), 3):
+#         merged_data = np.zeros((secret_data[i].shape[0], secret_data[i].shape[1], 3), dtype=np.uint8)
+#         merged_data[:, :, 0] = (merged_data[:, :, 0] & 0x7F) | (secret_data[i] << 7)  # Extracted from channel 0
+#         merged_data[:, :, 1] = (merged_data[:, :, 1] & 0x7F) | (secret_data[i + 1] << 7)  # Extracted from channel 1
+#         merged_data[:, :, 2] = (merged_data[:, :, 2] & 0x7F) | (secret_data[i + 2] << 7)  # Extracted from channel 2
+#         secret_frames.append(merged_data)
+
+#     for idx, frame_data in enumerate(secret_frames):
+#         frame_image = Image.fromarray(frame_data)
+#         frame_image.save(f"output/extracted_secret_video/frame_{idx}.bmp")
+
+#     imagesToVideo("output/extracted_secret_video/extracted_secret_video.avi", "encoded", fps)
+
+
+
+def caller():
     while True:
-        print("\n\t\tVIDEO STEGANOGRAPHY OPERATIONS") 
-        print("1. Encode an Video")  
-        # print("2. Decode an Image")  
-        print("3. Exit")  
-        choice1 = int(input("Enter the Choice: "))   
+        print("\n\t\tVIDEO STEGANOGRAPHY OPERATIONS")
+        print("1. Embed Secret Video in Cover Video")
+        print("2. Extract Secret Video from Cover Video")
+        print("3. Exit")
+        choice1 = int(input("Enter the Choice: "))
         if choice1 == 1:
-            password = input("Enter password for encryption: ")
-            key = key_generator(password)
             setupTempDir()
             cover = 'resources/cover_test.avi'
             cover_fps = videoToImages(cover, "cover")
-            secret =  'resources/secret_test.avi'
+            secret = 'resources/secret_test.avi'
             videoToImages(secret, "secret")
-            stegoEncodeFrames(key)
-            output =  'output/output.avi'
+            stegoEncodeFrames()
+            output = 'output/output.avi'
             imagesToVideo(output, "encoded", cover_fps)
-            cleanupTempFiles()
-
-        # elif choice1 == 2:
-        #     password = input("Enter password for decryption: ")
-        #     # decoded_image_path = "./output/decoded.jpg"
-        #     # decode_vid_data(a,password).save(decoded_image_path)
-        #     decode_vid_image(a, password, img_shape)
+            print("\n\n\nVideo embeded successfully! Stego video saved as: ", output)
+            # compareVideos('resources/cover_test.avi', 'output/output.avi')
+            # cleanupTempFiles()
+        elif choice1 == 2:
+            encoded_video = 'output/output.avi'
+            encoded_fps = extractFramesFromEncodedVideo(encoded_video)
+            stegoDecodeFrames()
+            imagesToVideo("output/extracted_secret_video.avi","decoded",encoded_fps)
+            print("\n\n\nVideo extracted successfully! Output file saved as: output/extracted_secret_video.avi", )
+            
+            # cleanupTempFiles()
         elif choice1 == 3:
             break
         else:
             print("Incorrect Choice")
-        print("\n")
-
-if __name__ == "__main__":
-    main()     

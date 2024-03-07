@@ -349,11 +349,11 @@ def txt_encode(text):
         t+=1
     file3.close()  
     file1.close()
-    print("\nStego file has successfully generated")
+    print("\n\nStego file has successfully generated. Use ./output/",nameoffile," for decoding")
 
 def encode_txt_data(password):
     count2=0
-    file1 = open("./resources/cover_text.txt","r")
+    file1 = open(input("Enter the path of cover text file: "),"r")
     for line in file1: 
         for word in line.split():
             count2=count2+1
@@ -387,7 +387,7 @@ def decode_txt_data(password):
     # print(str(password1, "utf-8"), "\n", password.strip())
     if str(password1, "utf-8") == password.strip():
         ZWC_reverse={u'\u200C':"00",u'\u202C':"01",u'\u202D':"11",u'\u200E':"10"}
-        stego=input("\nPlease enter the stego file name(with extension) to decode the message:- ")
+        stego="./output/" + input("\nPlease enter the stego file name(with extension) to decode the message:- ")
         file4= open(stego,"r", encoding="utf-8")
         temp=''
         for line in file4: 
