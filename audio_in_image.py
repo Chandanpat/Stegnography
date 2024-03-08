@@ -65,12 +65,12 @@ def shit_n_bits_to_8(value, n):
 
 
 def encode(password):
-    # image_to_hide_path = input("Enter path of audio to be hidden: ")
-    audio_to_hide_path = "./resources/audio_file3.wav"
-    # image_to_hide_in_path = input("Enter path of cover image: ")
-    image_to_hide_in_path = "./resources/download (1).jpeg"
-    # encoded_image_path = "./output/"+input("Enter the name of stego file to be generated: ")
-    encoded_image_path = "./output/image_output.jpg"
+    audio_to_hide_path = input("Enter path of audio to be hidden: ")
+    # audio_to_hide_path = "./resources/audio_file.wav"
+    image_to_hide_in_path = input("Enter path of cover image: ")
+    # image_to_hide_in_path = "./resources/image.jpg"
+    encoded_image_path = "./output/"+input("Enter the name of stego file to be generated: ")
+    # encoded_image_path = "./output/image_output.jpg"
     n_bits = 1
     image_to_hide_in = Image.open(image_to_hide_in_path)
     width, height = image_to_hide_in.size
@@ -94,7 +94,7 @@ def encode(password):
     for y in range(height):
         for x in range(width):
             try:
-                # Extract bytes from the encrypted image for each channel
+                # Extract bytes from the encrypted audio for each channel
                 r_byte = next(encrypted_iterator)
                 g_byte = next(encrypted_iterator)
                 b_byte = next(encrypted_iterator)
@@ -128,62 +128,12 @@ def encode(password):
     print("\n\nStego file has successfully generated. Use ",encoded_image_path," for decoding")
 
 
-# def decode(password):
-#     # encoded_image_path = input("Enter the path of encoded audio: ")
-#     encoded_image_path = "./output/image_output.jpg"
-#     # decoded_image_path = "./output/"+input("Enter the name of output file to be generated: ")
-#     decoded_image_path = "./output/output_audio.wav"
-#     n_bits = 1
-#     image_to_decode = Image.open(encoded_image_path)
-#     width, height = image_to_decode.size
-#     encoded_image = image_to_decode.load()
 
-#     data = []
-
-#     for y in range(height):
-#         for x in range(width):
-#             r_encoded, g_encoded, b_encoded = encoded_image[x, y]
-
-#             r_encoded = get_n_least_significant_bits(r_encoded, n_bits)
-#             g_encoded = get_n_least_significant_bits(g_encoded, n_bits)
-#             b_encoded = get_n_least_significant_bits(b_encoded, n_bits)
-
-#             r_encoded = shit_n_bits_to_8(r_encoded, n_bits)
-#             g_encoded = shit_n_bits_to_8(g_encoded, n_bits)
-#             b_encoded = shit_n_bits_to_8(b_encoded, n_bits)
-
-#             data.append((r_encoded, g_encoded, b_encoded))
-
-#     decrypted_image = make_image(data, image_to_decode.size)
-
-
-#     with open('./output/key_ii.bin', 'rb') as f:
-#         data = f.read()
-#     contents = data.splitlines()
-#     # print(contents)
-#     password1 = contents[0]
-#     key = contents[1]
-#     # print(key)
-#     # print(str(password1, "utf-8"), "\n", password.strip())
-#     if str(password1, "utf-8") == password.strip():
-#         # Decrypt the image using the provided password
-#         decrypted_image_bytes = decrypted_image.tobytes()
-#         original_image_bytes = decrypt(key, decrypted_image_bytes)
-#         # print(original_image_bytes)
-
-#         # Create a new image from the decrypted image bytes
-#         original_image = Image.frombytes("RGB", decrypted_image.size, original_image_bytes)
-#         original_image.save(decoded_image_path)
-
-#     else:
-#         print("Invalid Password!!")
-#         return 0
-
-def shift_n_bits_to_8(value, n_bits):
-    return value << (8 - n_bits)
 def decode(password):
-    encoded_image_path = "./output/image_output.jpg"
-    decoded_audio_path = "./output/output_audio.wav"
+    encoded_image_path = input("Enter the path of Stego image: ")
+    # encoded_image_path = "./output/image_output.jpg"
+    decoded_audio_path = "./output/"+input("Enter the name of output file to be generated: ")
+    # decoded_audio_path = "./output/output_audio.wav"
     n_bits = 1
 
     # Open the stego image for decoding
@@ -204,18 +154,13 @@ def decode(password):
             g_encoded = get_n_least_significant_bits(g_encoded, n_bits)
             b_encoded = get_n_least_significant_bits(b_encoded, n_bits)
 
-            # Shift the bits to reconstruct the original byte
-            r_encoded = shift_n_bits_to_8(r_encoded, n_bits)
-            g_encoded = shift_n_bits_to_8(g_encoded, n_bits)
-            b_encoded = shift_n_bits_to_8(b_encoded, n_bits)
+            # Reconstruct the original byte
+            original_byte = r_encoded | g_encoded | b_encoded
 
             # Append the reconstructed byte to the extracted audio frames
-            extracted_audio_frames.append(r_encoded)
-            extracted_audio_frames.append(g_encoded)
-            extracted_audio_frames.append(b_encoded)
+            extracted_audio_frames.append(original_byte)
 
-
-
+    # Read the encryption key from the file
     with open('./output/key_ai.bin', 'rb') as f:
         data = f.read()
     contents = data.splitlines()
@@ -229,7 +174,9 @@ def decode(password):
 
         # Write the decrypted audio to the output file
         with wave.open(decoded_audio_path, 'wb') as output_audio_file:
+            output_audio_file.setnchannels(2)  # Specify the number of channels
             output_audio_file.setframerate(22050)
+            output_audio_file.setsampwidth(2)  # Set sample width to 2 bytes for 16-bit audio
             output_audio_file.writeframes(decrypted_audio)
 
         print("Audio extracted successfully! Output file saved as:", decoded_audio_path)
@@ -237,17 +184,15 @@ def decode(password):
         print("Invalid Password!!")
 
 
-    print("Audio extracted successfully! Output file saved as:", decoded_audio_path)
 
-def main():
+def caller():
 
     while True:
         print("\n\n\t1. Hide Audio in image\n\t2. Retrieve Audio from image\n\t3. Exit")
         ch = int(input("\n\t\t Enter your choice: \n"))
 
         if ch == 1:
-            # password = input("Enter password for encryption: ")
-            password = "qwerty@1234567890"
+            password = input("Enter password for encryption: ")
             encode(password)
 
         elif ch == 2:
@@ -260,7 +205,3 @@ def main():
 
         else:
             print("\n\nInvalid Choice!!")
-
-
-if __name__ == "__main__":
-    main()
