@@ -1,50 +1,15 @@
 from PIL import Image
-from Crypto.Random import get_random_bytes
-from Crypto.Protocol.KDF import PBKDF2
-from PIL import Image
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad, unpad
+from essentials import *
 
 
-def encrypt(key, data):
-    # print(type(data))
-    cipher = AES.new(key, AES.MODE_CBC)
-    ciphertext = cipher.encrypt(pad(data, AES.block_size))
-    # print(ciphered_data)
-    with open('./output/encrypted_ii.bin', 'wb') as f:
-        f.write(cipher.iv)
-        f.write(ciphertext)
-    return ciphertext
-
-
-def key_generator(password):
-    simple_key = get_random_bytes(32)
-    # print(simple_key)
-    salt = simple_key
-    key = PBKDF2(password, salt, dkLen=32)
-    with open('./output/key_ii.bin', 'wb') as f:
-        password1 = bytes(password + "\n", "utf-8")
-        # print(password1)
-        f.write(password1)
-        f.write(key)
-    return key
-
-
-def decrypt(key, cypherText):
-    with open('./output/encrypted_ii.bin', 'rb') as f:
-        iv = f.read(16)
-        cypherText = f.read()
-        cipher = AES.new(key, AES.MODE_CBC, iv=iv)
-        og = unpad(cipher.decrypt(cypherText), AES.block_size)
-    return og
 
 MAX_COLOR_VALUE = 256
 MAX_BIT_VALUE = 8
 
+
 def make_image(data, resolution):
     image = Image.new("RGB", resolution)
     image.putdata(data)
-
     return image
 
 def remove_n_least_significant_bits(value, n):
@@ -78,11 +43,11 @@ def encode(password):
 
     data = []
 
-    key = key_generator(password)
+    key = key_generator(password,'ii')
     # print(key)
     image_bytes = image_to_hide.tobytes()
     # print(image_bytes)
-    encrypted_image = encrypt(key, image_bytes)
+    encrypted_image = encrypt(key, image_bytes,'ii')
 
     # Use an iterator for the encrypted image bytes
     encrypted_iterator = iter(encrypted_image)
@@ -112,63 +77,54 @@ def encode(password):
                 break
     
     make_image(data, image_to_hide.size).save(encoded_image_path)
-    print("\n\nStego file has successfully generated. Use ./output/",encoded_image_path," for decoding")
+    print("\n\nImage embedded successfully!! Stego file saved as: ",encoded_image_path)
 
 
 def decode(password):
-    encoded_image_path = input("Enter the path of encoded image: ")
-    decoded_image_path = "./output/"+input("Enter the name of output file to be generated: ")
-    n_bits = 1
-    image_to_decode = Image.open(encoded_image_path)
-    width, height = image_to_decode.size
-    encoded_image = image_to_decode.load()
+    key,check = checkPass(password,'ii')
+    if check == True:
+        encoded_image_path = input("Enter the path of encoded image: ")
+        decoded_image_path = "./output/"+input("Enter the name of output file to be generated: ")
+        n_bits = 1
+        image_to_decode = Image.open(encoded_image_path)
+        width, height = image_to_decode.size
+        encoded_image = image_to_decode.load()
 
-    data = []
+        data = []
 
-    for y in range(height):
-        for x in range(width):
-            r_encoded, g_encoded, b_encoded = encoded_image[x, y]
+        for y in range(height):
+            for x in range(width):
+                r_encoded, g_encoded, b_encoded = encoded_image[x, y]
 
-            r_encoded = get_n_least_significant_bits(r_encoded, n_bits)
-            g_encoded = get_n_least_significant_bits(g_encoded, n_bits)
-            b_encoded = get_n_least_significant_bits(b_encoded, n_bits)
+                r_encoded = get_n_least_significant_bits(r_encoded, n_bits)
+                g_encoded = get_n_least_significant_bits(g_encoded, n_bits)
+                b_encoded = get_n_least_significant_bits(b_encoded, n_bits)
 
-            r_encoded = shit_n_bits_to_8(r_encoded, n_bits)
-            g_encoded = shit_n_bits_to_8(g_encoded, n_bits)
-            b_encoded = shit_n_bits_to_8(b_encoded, n_bits)
+                r_encoded = shit_n_bits_to_8(r_encoded, n_bits)
+                g_encoded = shit_n_bits_to_8(g_encoded, n_bits)
+                b_encoded = shit_n_bits_to_8(b_encoded, n_bits)
 
-            data.append((r_encoded, g_encoded, b_encoded))
+                data.append((r_encoded, g_encoded, b_encoded))
 
-    decrypted_image = make_image(data, image_to_decode.size)
-
-
-    with open('./output/key_ii.bin', 'rb') as f:
-        data = f.read()
-    contents = data.splitlines()
-    # print(contents)
-    password1 = contents[0]
-    key = contents[1]
-    # print(key)
-    # print(str(password1, "utf-8"), "\n", password.strip())
-    if str(password1, "utf-8") == password.strip():
+        decrypted_image = make_image(data, image_to_decode.size)
         # Decrypt the image using the provided password
         decrypted_image_bytes = decrypted_image.tobytes()
         original_image_bytes = decrypt(key, decrypted_image_bytes)
-        # print(original_image_bytes)
-
         # Create a new image from the decrypted image bytes
         original_image = Image.frombytes("RGB", decrypted_image.size, original_image_bytes)
         original_image.save(decoded_image_path)
-
+        print("\n\n\nImage extracted successfully! Output file saved as: ",decoded_image_path)
     else:
         print("Invalid Password!!")
         return 0
 
 
 def caller():
-
     while True:
-        print("\n\n\t1. Hide Image in image\n\t2. Retrieve Image from image\n\t3. Exit")
+        print("\n\t\tIMAGE IN IMAGE STEGANOGRAPHY OPERATIONS") 
+        print("1. Encode Image in Image")  
+        print("2. Decode Image from Image")  
+        print("3. Exit") 
         ch = int(input("\n\t\t Enter your choice: \n"))
 
         if ch == 1:
