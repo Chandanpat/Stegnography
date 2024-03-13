@@ -351,6 +351,7 @@ def caller():
             # decode_vid_data(a,password).save(decoded_image_path)
             decode_vid_image(a, password, img_shape)
         elif choice1 == 3:
+            print("\n\nExiting.........")
             break
         else:
             print("Incorrect Choice")

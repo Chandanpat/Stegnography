@@ -240,7 +240,7 @@ def unhide_audio_from_encryptedVideo(encrypted_video, password, output_audio):
 
 
 
-def main():
+def caller():
     while True:
         print("\n\t\tAUDIO IN VIDEO STEGANOGRAPHY OPERATIONS") 
         print("1. Encode Audio in video")  
@@ -261,8 +261,9 @@ def main():
             output_audio = input("Enter the name of output audio file to be generated: ")
             unhide_audio_from_encryptedVideo(encrypted_video, password, output_audio)
 
+        elif option == 3:
+            print("\n\nExiting.........")
+            break
+
         else:
             print("Incorrect Choice!!")
-
-if __name__ == "__main__":
-    main()
