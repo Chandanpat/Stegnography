@@ -1,52 +1,18 @@
-from Crypto.Random import get_random_bytes
-from Crypto.Protocol.KDF import PBKDF2
 from PIL import Image
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad, unpad
+from essentials import *
 
 
-def encrypt(key, password, msg):
-    cipher = AES.new(key, AES.MODE_CBC)
-    ciphered_data = cipher.encrypt(pad(msg, AES.block_size))
-    # print(ciphered_data)
-    with open('./output/encrypted_ti.bin', 'wb') as f:
-        f.write(cipher.iv)
-        f.write(ciphered_data)
-    return ciphered_data
 
-
-def key_generator(password):
-    simple_key = get_random_bytes(32)
-    # print(simple_key)
-    salt = simple_key
-    key = PBKDF2(password, salt, dkLen=32)
-    with open('./output/key_ti.bin', 'wb') as f:
-        password1 = bytes(password + "\n", "utf-8")
-        # print(password1)
-        f.write(password1)
-        f.write(key)
-    return key
-
-
-def decrypt(key, cypherText):
-    with open('./output/encrypted_ti.bin', 'rb') as f:
-        iv = f.read(16)
-        cypherText = f.read()
-        cipher = AES.new(key, AES.MODE_CBC, iv=iv)
-        og = unpad(cipher.decrypt(cypherText), AES.block_size)
-    return og
-
-
-def hide_msg_in_image(password):
+def hide_msg_in_image(password,):
     msg = bytes(input("Enter message to be encrypted: "), "utf-8")
     path = input("Enter path of cover image: ")
     # msg = bytes(message, "utf-8")
     image = Image.open(path)
     # print(image)
     # password = "1234"
-    key = key_generator(password)
+    key = key_generator(password,'ti')
     print(key)
-    encrypted_message = encrypt(key, password, msg)
+    encrypted_message = encrypt(key, msg, 'ti')
     message_blocks = [encrypted_message[i:i + 8] for i in range(0, len(encrypted_message), 8)]
     # print(message_blocks)
     binary_blocks = [format(int.from_bytes(block, 'big'), '064b') for block in message_blocks]
@@ -62,36 +28,28 @@ def hide_msg_in_image(password):
     # print(encoded_pixel)
     encoded_image = Image.new(image.mode, image.size)
     encoded_image.putdata(encoded_pixels)
-    file_name = input("Enter the name of stego to be generated: ")
+    file_name = input("Enter the name of stego file to be generated: ")
     encoded_image.save('./output/'+ file_name)
-    print("\n\nText embedded successfully!! Use ./output/",file_name," to retrieve the message.")
+    print("\n\n\nText embedded successfully!! Stego file saved as: ./output/",file_name)
+
 
 
 def retrieve_msg_from_image(password):
-    path = input("Enter path of cover image: ")
-    encoded_image = Image.open(path)
-    binary_blocks = []
-    for pixel in encoded_image.getdata():
-        binary_block = format(pixel[2], '08b')
-        binary_blocks.append(binary_block)
-    encrypted_message = b''.join([int(block, 2).to_bytes(8, 'big') for block in binary_blocks])
-    # print((encrypted_message))
-    # password = "1234"
-    # key = key_generator(password)
-    with open('./output/key_ti.bin', 'rb') as f:
-        data = f.read()
-    contents = data.splitlines()
-    # print(contents)
-    password1 = contents[0]
-    key = contents[1]
-    # print(key)
-    # print(str(password1, "utf-8"), "\n", password.strip())
-    if str(password1, "utf-8") == password.strip():
-        decrypted_message = decrypt(key, encrypted_message)
+    key,check = checkPass(password,'ti')
+    if check == True:
+        path = input("Enter path of cover image: ")
+        encoded_image = Image.open(path)
+        binary_blocks = []
+        for pixel in encoded_image.getdata():
+            binary_block = format(pixel[2], '08b')
+            binary_blocks.append(binary_block)
+        encrypted_message = b''.join([int(block, 2).to_bytes(8, 'big') for block in binary_blocks])
+        decrypted_message = decrypt(key, encrypted_message,'ti')
         message = decrypted_message.decode("utf-8")
-        print("\n\nMessage after decoding from the stego file:- ", message)
+        print("\n\n\nMessage after decoding from the stego file:- ", message)
     else:
         print("Invalid Password!!")
+
 
 
 def caller():
@@ -99,9 +57,11 @@ def caller():
     # msg = bytes(input("Enter message to be encrypted: "), "utf-8")
     # print("\t\t\t\t\t#####  Welcome to text in image steganography tool  #####\n\n")
     while True:
-        print("\n\n\t1. Hide message in image\n\t2. Retrieve message from image\n\t3. Exit")
-        ch = int(input("\n\t\tEnter your choice: \n"))
-
+        print("\n\t\tTEXT IN IMAGE STEGANOGRAPHY OPERATIONS") 
+        print("1. Encode Text in Image")  
+        print("2. Decode Text from Image")  
+        print("3. Exit") 
+        ch = int(input("Enter your Choice: "))
         if ch == 1:
             password = input("Enter password for encryption: ")
             hide_msg_in_image(password)
@@ -116,13 +76,3 @@ def caller():
 
         else:
             print("\n\nInvalid Choice!!")
-
-
-
-    # cypherText = encrypt(key, password, msg)
-    # # print(cypherText)
-    # og = decrypt(key, cypherText)
-    # print(str(og, "utf-8"))
-    # message = "hey"
-    # hide_msg_in_image(message)
-    # retrieve_msg_from_image()

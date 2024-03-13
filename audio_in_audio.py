@@ -128,45 +128,28 @@ def extract_audio_from_audio(encoded_audio_file, decoded_audio_path, password):
 
 
 # Main function
-def main():
-    # choice = input("Enter 1 for encryption or 2 for decryption: ")
-
-    # if choice == '1':
-    #     audio_file = input("Enter the path of the audio file: ")
-    #     message = input("Enter the text message to hide: ")
-    #     output_file = input(
-    #         "Enter the output file name (e.g., encoded_audio.wav): ")
-    #     hide_text_in_audio(audio_file, message, output_file)
-    # elif choice == '2':
-    #     encoded_audio_file = input(
-    #         "Enter the path of the encoded audio file: ")
-    #     extracted_message = extract_text_from_audio(encoded_audio_file)
-        
-    # else:
-    #     print("Invalid choice. Please enter 1 for encryption or 2 for decryption.")
-
-    gap_size = 0
+def caller():
     while True:
         print("\n\n\t1. Hide audio in audio\n\t2. Retrieve audio from audio\n\t3. Exit")
         ch = int(input("\n\t\tChoose from below options: \n"))
 
         if ch == 1:
             password = input("Enter password for encryption: ")
-            # audio_file= input("Enter path of cover Audio: ")
-            audio_file= "./resources/Audio_test.wav"
-            # image_to_hide_path = input("Enter path of audio to be hidden: ")
-            audio_to_hide_path = "./resources/audio_file.wav"
-            # output_file = input("Enter the name stego file with extension: ")
-            output_file = "output_test999.wav"
+            audio_file= input("Enter path of cover Audio: ")
+            # audio_file= "./resources/Audio_test.wav"
+            audio_to_hide_path = input("Enter path of audio to be hidden: ")
+            # audio_to_hide_path = "./resources/audio_file.wav"
+            output_file = input("Enter the name stego file with extension: ")
+            # output_file = "output_test999.wav"
             # gap_size = hide_audio_in_audio(audio_file, audio_to_hide_path, output_file,password) 
             hide_audio_in_audio(audio_file, audio_to_hide_path, output_file,password) 
 
         elif ch == 2:
             password = input("Enter password for decryption:")
-            # encoded_audio_file = input("Enter the path of the encoded audio file: ")
+            encoded_audio_file = input("Enter the path of the encoded audio file: ")
             # encoded_audio_file = "./output/encoded.wav"
-            encoded_audio_file = "output_test999.wav"
-            decoded_audio_path = "./output/decoded_audio.wav"
+            # encoded_audio_file = "output_test999.wav"
+            decoded_audio_path = input("Enter the name of output audio file with extension to be generated: ")
             extract_audio_from_audio(encoded_audio_file, decoded_audio_path, password)
 
         elif ch == 3:
@@ -175,7 +158,4 @@ def main():
 
         else:
             print("\n\nInvalid Choice!!")
-
-if __name__ == "__main__":
-    main()
 
