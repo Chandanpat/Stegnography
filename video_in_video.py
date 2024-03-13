@@ -486,9 +486,9 @@ def caller():
         choice1 = int(input("Enter the Choice: "))
         if choice1 == 1:
             setupTempDir()
-            cover = 'resources/cover_test.avi'
+            cover = './resources/cover_test.avi'
             cover_fps = videoToImages(cover, "cover")
-            secret = 'resources/secret_test.avi'
+            secret = './resources/secret_test.avi'
             videoToImages(secret, "secret")
             stegoEncodeFrames()
             output = 'output/output.avi'
@@ -501,7 +501,7 @@ def caller():
             encoded_fps = extractFramesFromEncodedVideo(encoded_video)
             stegoDecodeFrames()
             imagesToVideo("output/extracted_secret_video.avi","decoded",encoded_fps)
-            print("\n\n\nVideo extracted successfully! Output file saved as: output/extracted_secret_video.avi", )
+            print("\n\n\nVideo extracted successfully! Output file saved as: output/extracted_secret_video.avi")
             
             # cleanupTempFiles()
         elif choice1 == 3:
