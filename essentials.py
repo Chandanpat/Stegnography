@@ -28,7 +28,7 @@ def key_generator(password,type):
 
 
 def decrypt(key, cypherText, type):
-    with open('./output/encrypted'+type+'.bin', 'rb') as f:
+    with open('./output/encrypted_'+type+'.bin', 'rb') as f:
         iv = f.read(16)
         cypherText = f.read()
         cipher = AES.new(key, AES.MODE_CBC, iv=iv)

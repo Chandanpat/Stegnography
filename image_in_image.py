@@ -83,7 +83,7 @@ def encode(password):
 def decode(password):
     key,check = checkPass(password,'ii')
     if check == True:
-        encoded_image_path = input("Enter the path of encoded image: ")
+        encoded_image_path = input("Enter the path of Stego image: ")
         decoded_image_path = "./output/"+input("Enter the name of output file to be generated: ")
         n_bits = 1
         image_to_decode = Image.open(encoded_image_path)
@@ -109,7 +109,7 @@ def decode(password):
         decrypted_image = make_image(data, image_to_decode.size)
         # Decrypt the image using the provided password
         decrypted_image_bytes = decrypted_image.tobytes()
-        original_image_bytes = decrypt(key, decrypted_image_bytes)
+        original_image_bytes = decrypt(key, decrypted_image_bytes,"ii")
         # Create a new image from the decrypted image bytes
         original_image = Image.frombytes("RGB", decrypted_image.size, original_image_bytes)
         original_image.save(decoded_image_path)

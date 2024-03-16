@@ -11,7 +11,6 @@ def hide_msg_in_image(password,):
     # print(image)
     # password = "1234"
     key = key_generator(password,'ti')
-    print(key)
     encrypted_message = encrypt(key, msg, 'ti')
     message_blocks = [encrypted_message[i:i + 8] for i in range(0, len(encrypted_message), 8)]
     # print(message_blocks)
@@ -37,7 +36,7 @@ def hide_msg_in_image(password,):
 def retrieve_msg_from_image(password):
     key,check = checkPass(password,'ti')
     if check == True:
-        path = input("Enter path of cover image: ")
+        path = input("Enter path of Stego image: ")
         encoded_image = Image.open(path)
         binary_blocks = []
         for pixel in encoded_image.getdata():
@@ -67,7 +66,7 @@ def caller():
             hide_msg_in_image(password)
 
         elif ch == 2:
-            password = input("Enter password for decryption:")
+            password = input("Enter password for decryption: ")
             retrieve_msg_from_image(password)
 
         elif ch == 3:
