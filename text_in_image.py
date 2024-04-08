@@ -1,5 +1,6 @@
 from PIL import Image
 from essentials import *
+from calculations import *
 
 
 
@@ -11,8 +12,11 @@ def hide_msg_in_image(password,):
     # print(image)
     # password = "1234"
     key = key_generator(password,'ti')
-    print(key)
     encrypted_message = encrypt(key, msg, 'ti')
+
+    # required_percentage = calculate_required_percentage_ti(image.size, msg)
+    # print(required_percentage)
+
     message_blocks = [encrypted_message[i:i + 8] for i in range(0, len(encrypted_message), 8)]
     # print(message_blocks)
     binary_blocks = [format(int.from_bytes(block, 'big'), '064b') for block in message_blocks]
@@ -37,7 +41,7 @@ def hide_msg_in_image(password,):
 def retrieve_msg_from_image(password):
     key,check = checkPass(password,'ti')
     if check == True:
-        path = input("Enter path of cover image: ")
+        path = input("Enter path of Stego image: ")
         encoded_image = Image.open(path)
         binary_blocks = []
         for pixel in encoded_image.getdata():
@@ -45,8 +49,13 @@ def retrieve_msg_from_image(password):
             binary_blocks.append(binary_block)
         encrypted_message = b''.join([int(block, 2).to_bytes(8, 'big') for block in binary_blocks])
         decrypted_message = decrypt(key, encrypted_message,'ti')
-        message = decrypted_message.decode("utf-8")
-        print("\n\n\nMessage after decoding from the stego file:- ", message)
+        try:
+            message = decrypted_message.decode("utf-8")
+            print("\n\n\nMessage after decoding from the stego file:- ", message)
+        except Exception as Error:
+            print(type(Error).__name__)
+            print("\n\n\n This image has nothing to decode!")
+            
     else:
         print("Invalid Password!!")
 
@@ -67,7 +76,7 @@ def caller():
             hide_msg_in_image(password)
 
         elif ch == 2:
-            password = input("Enter password for decryption:")
+            password = input("Enter password for decryption: ")
             retrieve_msg_from_image(password)
 
         elif ch == 3:

@@ -130,7 +130,7 @@ def decode(password):
                 # Append the reconstructed byte to the extracted audio frames
                 extracted_audio_frames.append(original_byte)
 
-        decrypted_audio = decrypt(key, extracted_audio_frames)
+        decrypted_audio = decrypt(key, extracted_audio_frames,"ai")
 
         # Write the decrypted audio to the output file
         with wave.open(decoded_audio_path, 'wb') as output_audio_file:
@@ -139,7 +139,7 @@ def decode(password):
             output_audio_file.setsampwidth(2)  # Set sample width to 2 bytes for 16-bit audio
             output_audio_file.writeframes(decrypted_audio)
 
-        print("Audio extracted successfully! Output file saved as:", decoded_audio_path)
+        print("\n\n\nAudio extracted successfully! Output file saved as:", decoded_audio_path)
     else:
         print("Invalid Password!!")
 

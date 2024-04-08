@@ -7,7 +7,7 @@ from essentials import *
 def hide_text_in_audio(password):
     audio_file = input("Enter path of cover Audio: ")
     # audio_file= "./resources/audio_file.wav"
-    message = bytes(input("Enter the text message to hide:"), "utf-8")
+    message = bytes(input("Enter the text message to hide: "), "utf-8")
     output_file = input("Enter the name stego file with extension: ")
     # Open the audio file for reading
     audio = wave.open(audio_file, 'rb')
@@ -42,7 +42,7 @@ def hide_text_in_audio(password):
     with wave.open(output_path, 'wb') as output:
         output.setparams(audio.getparams())
         output.writeframes(encoded_frames)
-    print("Text embedded successfully! Output file saved as: ", output_path)
+    print("\n\n\nText embedded successfully! Stego file saved as: ", output_path)
 
 
 # Function to extract a hidden text message from an audio file
@@ -51,7 +51,7 @@ def hide_text_in_audio(password):
 def extract_text_from_audio(password):
     key,check = checkPass(password,'ta')
     if check == True:
-        encoded_audio_file = input("Enter the path of the encoded audio file: ")
+        encoded_audio_file = input("Enter the path of the Stego audio: ")
         # encoded_audio_file = "./output/encoded.wav"
         audio = wave.open(encoded_audio_file, 'rb')
         frames = audio.readframes(-1)
@@ -77,7 +77,7 @@ def extract_text_from_audio(password):
                 break
         decrypted_message = decrypt(key, encrypted_message, 'ta')
         message = decrypted_message.decode("utf-8")
-        print("\n\nMessage decoded from the stego file:- ", message)  # Print the extracted message as text
+        print("\n\n\nMessage decoded from the stego file:- ", message)  # Print the extracted message as text
     else:
         print("Invalid Password!!")
 
@@ -96,7 +96,7 @@ def caller():
             hide_text_in_audio(password) 
 
         elif ch == 2:
-            password = input("Enter password for decryption:")
+            password = input("Enter password for decryption: ")
             extract_text_from_audio(password)
 
         elif ch == 3:
