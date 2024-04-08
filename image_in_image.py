@@ -1,5 +1,6 @@
 from PIL import Image
 from essentials import *
+from calculations import *
 
 
 
@@ -37,6 +38,12 @@ def encode(password):
     n_bits = 1
     image_to_hide = Image.open(image_to_hide_path)
     image_to_hide_in = Image.open(image_to_hide_in_path)
+
+    # Calculate required percentage
+    # required_percentage = calculate_required_percentage_ii(image_to_hide_in.size, image_to_hide.size)
+    # print(f"The secret image should occupy {required_percentage:.2f}% of the cover image.")
+
+
     width, height = image_to_hide.size
     hide_image = image_to_hide.load()
     hide_in_image = image_to_hide_in.load()

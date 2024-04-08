@@ -31,9 +31,17 @@ def decrypt(key, cypherText, type):
     with open('./output/encrypted_'+type+'.bin', 'rb') as f:
         iv = f.read(16)
         cypherText = f.read()
+        # with open('./output/c1.txt','wt') as f:
+        #     f.write(str(cypher,'utf-8'))
+        # with open('./output/c2.txt','wt') as f:
+        #     f.write(str(cypherText,'utf-8'))
+        # if(cypherText == cypher):
         cipher = AES.new(key, AES.MODE_CBC, iv=iv)
         og = unpad(cipher.decrypt(cypherText), AES.block_size)
-    return og
+        return og
+        # else:
+        #     return ""
+            
 
 
 def checkPass(password,type):

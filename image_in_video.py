@@ -74,8 +74,11 @@ def encrypt_image(key, image_path):
 def decrypt_image(key, encrypted_data, image_shape):
     img_size = np.prod(image_shape)
     decrypted_data = decrypt(key, encrypted_data, "iv")[:img_size]
-    img = np.frombuffer(decrypted_data, dtype=np.uint8).reshape(image_shape)
-    return img
+    try:
+        img = np.frombuffer(decrypted_data, dtype=np.uint8).reshape(image_shape)
+        return img
+    except Exception as Error:
+        print(type(Error).__name__)
 
 
 
@@ -207,8 +210,11 @@ def decode_vid_image(password, image_shape):
                 break
             if frame_number == n:
                 extracted_image = extract_image(frame, key, image_shape)
-                cv2.imwrite(output_image_path, extracted_image)
-                print("\n\n\nImage extracted successfully! Output file saved as: ",output_image_path)
+                try:
+                    cv2.imwrite(output_image_path, extracted_image)
+                    print("\n\n\nImage extracted successfully! Output file saved as: ",output_image_path)
+                except:
+                    print("\n\n\n This frame has nothing to decode!")
                 return
     else:
         print("Invalid Password!!")
