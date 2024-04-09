@@ -4,7 +4,7 @@ from calculations import *
 
 
 
-def hide_msg_in_image(password,):
+def hide_msg_in_image(password):
     msg = bytes(input("Enter message to be encrypted: "), "utf-8")
     path = input("Enter path of cover image: ")
     # msg = bytes(message, "utf-8")
