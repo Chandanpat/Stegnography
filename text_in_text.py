@@ -1,13 +1,5 @@
 import numpy as np
-import pandas as pand
-from matplotlib import pyplot as plt
-from Crypto.Random import get_random_bytes
-from Crypto.Protocol.KDF import PBKDF2
-from PIL import Image
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad, unpad
 from essentials import *
-
 
 
 def txt_encode(text):
@@ -29,9 +21,7 @@ def txt_encode(text):
             add+="0110"+res
         i+=1
     res1=add+"111111111111"
-    print("The string after binary conversion appyling all the transformation :- " + (res1))   
     length = len(res1)
-    print("Length of binary after conversion:- ",length)
     HM_SK=""
     ZWC={"00":u'\u200C',"01":u'\u202C',"11":u'\u202D',"10":u'\u200E'}      
     file1 = open("./resources/cover_text.txt","r+")
@@ -61,7 +51,8 @@ def txt_encode(text):
         t+=1
     file3.close()  
     file1.close()
-    print("\n\nStego file has successfully generated. Use ./output/"+nameoffile+" for decoding")
+    print("\n\n\nText embedded successfully!! Stego file saved as: ./output/",nameoffile)
+
 
 def encode_txt_data(password):
     count2=0
@@ -76,10 +67,10 @@ def encode_txt_data(password):
     l=len(text1)
     if(l<=bt):
         key = key_generator(password,'tt')
-        # print(key)
         encrypted_message = encrypt(key, bytes(text1,"utf-8"),'tt')
+        encrypted_message_str = encrypted_message.hex()  # Convert bytes to hexadecimal string
         print("\nInputed message can be hidden in the cover file\n")
-        txt_encode(text1)
+        txt_encode(encrypted_message_str)
     else:
         print("\nString is too big please reduce string size")
         encode_txt_data()
@@ -96,11 +87,8 @@ def decode_txt_data(password):
     with open('./output/key_tt.bin', 'rb') as f:
         data = f.read()
     contents = data.splitlines()
-    # print(contents)
     password1 = contents[0]
     key = contents[1]
-    # print(key)
-    # print(str(password1, "utf-8"), "\n", password.strip())
     if str(password1, "utf-8") == password.strip():
         ZWC_reverse={u'\u200C':"00",u'\u202C':"01",u'\u202D':"11",u'\u200E':"10"}
         stego=input("\nPlease enter the stego file path to decode the message:- ")
@@ -117,9 +105,7 @@ def decode_txt_data(password):
                     break
                 else:
                     temp+=binary_extract
-        print("\nEncrypted message presented in code bits:",temp) 
         lengthd = len(temp)
-        print("\nLength of encoded bits:- ",lengthd)
         i=0
         a=0
         b=4
@@ -140,27 +126,10 @@ def decode_txt_data(password):
             elif(t3=='0011'):
                 decimal_data = BinaryToDecimal(t4)
                 final+=chr((decimal_data ^ 170) - 48)
-        print("\n\nMessage decoded from the stego file:- ",final)
+        decrypted_message = decrypt(key, final, 'tt')
+        print("\n\n\nMessage after decoding from the stego file:- ", decrypted_message.decode("utf-8"))
     else:
         print("Invalid Password!!")
-
-
-
-def msgtobinary(msg):
-    if type(msg) == str:
-        result= ''.join([ format(ord(i), "08b") for i in msg ])
-    
-    elif type(msg) == bytes or type(msg) == np.ndarray:
-        result= [ format(i, "08b") for i in msg ]
-    
-    elif type(msg) == int or type(msg) == np.uint8:
-        result=format(msg, "08b")
-
-    else:
-        raise TypeError("Input type is not supported in this function")
-    
-    return result
-
 
 
 def caller():
@@ -182,4 +151,3 @@ def caller():
         else:
             print("\n\nInvalid Choice!!")
 
-        
