@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 from essentials import *
+from calculations import *
 
 
 
@@ -120,7 +121,8 @@ def encode_vid_data(password):
         ret, frame = vidcap.read()
         if ret == False:
             break
-        if frame_number == n:    
+        if frame_number == n:
+            calculate_payload_video_frames(cover_video,frame_number)   
             change_frame_with = embed(frame,password)
             frame = change_frame_with
         out.write(frame)

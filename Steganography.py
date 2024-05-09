@@ -1184,12 +1184,8 @@ def decode_vid_image(password, image_shape):
                 break
             if frame_number == n:
                 extracted_image = extract_image(frame, key, image_shape)
-                try:
-                    cv2.imwrite(output_image_path, extracted_image)
-                    print("\n\n\nImage extracted successfully! Output file saved as: ",output_image_path)
-                except:
-                    print("\n\n\n This frame has nothing to decode!")
-                return
+                cv2.imwrite(output_image_path, extracted_image)
+                print("\n\n\nImage extracted successfully! Output file saved as: ",output_image_path)
     else:
         print("Invalid Password!!")
 
@@ -1422,6 +1418,8 @@ def print_options():
     print("╚════════════════════════════════════════════════════════════════════════════════╝")
 
 def main():
+    CD = os.getcwd()
+    os.makedirs(os.path.join(CD,"output"), exist_ok=True)
     print_header()
     while True:
         print_options()
@@ -1454,14 +1452,3 @@ def main():
 
 if __name__ == "__main__":
     main()   
-
-
-
-
-
-
-
-
-
-
-

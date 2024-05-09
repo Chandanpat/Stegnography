@@ -14,8 +14,9 @@ def hide_msg_in_image(password):
     key = key_generator(password,'ti')
     encrypted_message = encrypt(key, msg, 'ti')
 
-    # required_percentage = calculate_required_percentage_ti(image.size, msg)
-    # print(required_percentage)
+    # required_percentage = calculate_payload_capacity_percentage_ti(path,msg)
+    payload = calculate_payload_capacity(path)
+    print(payload)
 
     message_blocks = [encrypted_message[i:i + 8] for i in range(0, len(encrypted_message), 8)]
     # print(message_blocks)
@@ -35,6 +36,7 @@ def hide_msg_in_image(password):
     file_name = input("Enter the name of stego file to be generated: ")
     encoded_image.save('./output/'+ file_name)
     print("\n\n\nText embedded successfully!! Stego file saved as: ./output/",file_name)
+    return msg.decode("utf-8")
 
 
 
@@ -49,12 +51,10 @@ def retrieve_msg_from_image(password):
             binary_blocks.append(binary_block)
         encrypted_message = b''.join([int(block, 2).to_bytes(8, 'big') for block in binary_blocks])
         decrypted_message = decrypt(key, encrypted_message,'ti')
-        try:
-            message = decrypted_message.decode("utf-8")
-            print("\n\n\nMessage after decoding from the stego file:- ", message)
-        except Exception as Error:
-            print(type(Error).__name__)
-            print("\n\n\n This image has nothing to decode!")
+        message = decrypted_message.decode("utf-8")
+        print("\n\n\nMessage after decoding from the stego file:- ", message)
+        return message
+        
             
     else:
         print("Invalid Password!!")
@@ -73,11 +73,14 @@ def caller():
         ch = int(input("Enter your Choice: "))
         if ch == 1:
             password = input("Enter password for encryption: ")
-            hide_msg_in_image(password)
+            inp = hide_msg_in_image(password)
 
         elif ch == 2:
             password = input("Enter password for decryption: ")
-            retrieve_msg_from_image(password)
+            out = retrieve_msg_from_image(password)
+            mse = calculate_mse(str(inp), str(out))
+            print("Mean Squared Error: ", mse)
+
 
         elif ch == 3:
             print("\n\nExiting.....")

@@ -6,6 +6,7 @@ from moviepy.editor import *
 from pydub import AudioSegment
 import wave
 from essentials import *
+from calculations import *
 
 
 def hide_audio_in_audio(cover_audio, secret_audio, output_file, password):
@@ -136,6 +137,7 @@ def hide_audio_in_video(password):
 
     get_audio(base_filename, video_object)        # Use this audio as cover_Audio
     cover_audio = f'output\\{base_filename}_audio.wav'
+    print("Payload = ",calculate_payload_video_audio(cover_audio))
 
     # Use Audio_In_Audio Hiding
     output_file = "./output/output_test999.wav"         # Assigning name for encoded_audio after hide_audio_in_audio
@@ -147,6 +149,7 @@ def hide_audio_in_video(password):
     output = "./output/"+output_video
     combine_audio_video(frames_directory, encoded_audio_data, og_video, output)
     print("\n\n\nAudio embeded successfully! Stego video saved as: ", output)
+    return og_audio
 
 
     
@@ -167,6 +170,7 @@ def unhide_audio_from_encryptedVideo(password):
         extract_audio_from_audio(extracted_audio, decoded_audio_path, password, key)
 
         print("\n\n\nAudio extracted successfully! Output file saved as: ",decoded_audio_path)
+        return decoded_audio_path
     
     else:
         print("Invalid Password!!")
@@ -183,11 +187,12 @@ def caller():
 
         if option == 1:
             password = input("Enter password for encryption: ")
-            hide_audio_in_video(password)
+            inp = hide_audio_in_video(password)
 
         elif option == 2:
             password = input("Enter password for decryption: ")
-            unhide_audio_from_encryptedVideo(password)
+            out = unhide_audio_from_encryptedVideo(password)
+            print("MSE = ",calculate_mse_av(inp,out))
 
         elif option == 3:
             print("\n\nExiting.....")
