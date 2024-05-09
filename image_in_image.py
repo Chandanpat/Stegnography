@@ -39,9 +39,8 @@ def encode(password):
     image_to_hide = Image.open(image_to_hide_path)
     image_to_hide_in = Image.open(image_to_hide_in_path)
 
-    # Calculate required percentage
-    # required_percentage = calculate_required_percentage_ii(image_to_hide_in.size, image_to_hide.size)
-    # print(f"The secret image should occupy {required_percentage:.2f}% of the cover image.")
+    payload = calculate_payload_capacity(image_to_hide_path)
+    print(payload)
 
 
     width, height = image_to_hide.size
@@ -85,6 +84,7 @@ def encode(password):
     
     make_image(data, image_to_hide.size).save(encoded_image_path)
     print("\n\nImage embedded successfully!! Stego file saved as: ",encoded_image_path)
+    return image_to_hide_path
 
 
 def decode(password):
@@ -121,6 +121,7 @@ def decode(password):
         original_image = Image.frombytes("RGB", decrypted_image.size, original_image_bytes)
         original_image.save(decoded_image_path)
         print("\n\n\nImage extracted successfully! Output file saved as: ",decoded_image_path)
+        return decoded_image_path
     else:
         print("Invalid Password!!")
         return 0
@@ -136,11 +137,17 @@ def caller():
 
         if ch == 1:
             password = input("Enter password for encryption: ")
-            encode(password)
+            inp = encode(password)
 
         elif ch == 2:
             password = input("Enter password for decryption: ")
-            decode(password)
+            out = decode(password)
+            # input_image_path = "D:\VIT\Major_Project\Stegnography\resources\download (1).jpeg"  # Path to the original input image
+            # output_image_path = "D:\VIT\Major_Project\Stegnography\output\output.jpeg"  # Path to the output image after decoding
+            # mse = calculate_mse(input_image_path, output_image_path)
+            # print("Mean Squared Error:", mse)
+            mse = calculate_mse_ii(inp, out)
+            print("Mean Squared Error:", mse)
             
         elif ch == 3:
             print("\n\nExiting.....")

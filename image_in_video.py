@@ -2,6 +2,7 @@ import numpy as np
 import cv2
 from PIL import Image
 from essentials import *
+from calculations import *
 
 
 
@@ -106,7 +107,7 @@ def embed_image(frame, password):
             if index_data >= length_data:
                 break
     # print("\n\n\nImage embedded successfully! Stego video saved as: ",image_path)
-    return frame, image_shape
+    return frame, image_shape, image_path
 
 
 
@@ -175,11 +176,11 @@ def encode_vid_image(password):
         if ret == False:
             break
         if frame_number == n:
-            frame, image_shape = embed_image(frame, password)
+            frame, image_shape, image_path = embed_image(frame, password)
         out.write(frame)
 
     print("\n\n\nImage embedded successfully! Stego video saved as: ",stego_video)
-    return image_shape
+    return image_shape, image_path
 
 
 
@@ -210,12 +211,10 @@ def decode_vid_image(password, image_shape):
                 break
             if frame_number == n:
                 extracted_image = extract_image(frame, key, image_shape)
-                try:
-                    cv2.imwrite(output_image_path, extracted_image)
-                    print("\n\n\nImage extracted successfully! Output file saved as: ",output_image_path)
-                except:
-                    print("\n\n\n This frame has nothing to decode!")
-                return
+                cv2.imwrite(output_image_path, extracted_image)
+                print("\n\n\nImage extracted successfully! Output file saved as: ",output_image_path)
+                return output_image_path
+        
     else:
         print("Invalid Password!!")
 
@@ -230,10 +229,12 @@ def caller():
         choice1 = int(input("Enter the Choice: "))   
         if choice1 == 1:
             password = input("Enter password for encryption: ")
-            img_shape = encode_vid_image(password)
+            img_shape,inp = encode_vid_image(password)
         elif choice1 == 2:
             password = input("Enter password for decryption: ")
-            decode_vid_image(password, img_shape)
+            out = decode_vid_image(password, img_shape)
+            mse = calculate_mse_ii(inp, out)
+            # print("Mean Squared Error:", mse)
         elif choice1 == 3:
             print("\n\nExiting.....")
             break

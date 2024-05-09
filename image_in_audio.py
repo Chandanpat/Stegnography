@@ -2,6 +2,7 @@ import os
 import wave
 from PIL import Image
 from essentials import *
+from calculations import *
 
 
 
@@ -86,7 +87,7 @@ def hide_image_in_audio(password):
 
     print("\n\n\nImage embedded successfully! Stego file saved as: ", output_path)
 
-    return gap_size, image.size
+    return gap_size, image.size,image_to_hide_path
 
 
 # Function to extract a hidden text message from an audio file
@@ -131,6 +132,8 @@ def extract_text_from_audio(password, gap_index, size):
         decrypted_image_bytes = decrypt(key, encrypted_image, "ia")
         Image.frombytes("RGB", size, decrypted_image_bytes).save(decoded_image_path)
         print("\n\n\nImage extracted successfully! Output file saved as: ", decoded_image_path)
+        return decoded_image_path
+    
     else:
         print("Invalid Password!!")
 
@@ -147,11 +150,13 @@ def caller():
 
         if ch == 1:
             password = input("Enter password for encryption: ")
-            gap_size,size = hide_image_in_audio(password) 
+            gap_size,size,inp = hide_image_in_audio(password) 
 
         elif ch == 2:
             password = input("Enter password for decryption: ")
-            extract_text_from_audio(password, gap_size, size)
+            out = extract_text_from_audio(password, gap_size, size)
+            mse = calculate_mse_ii(inp, out)
+            print("Mean Squared Error:", mse)
 
         elif ch == 3:
             print("\n\nExiting.....")
